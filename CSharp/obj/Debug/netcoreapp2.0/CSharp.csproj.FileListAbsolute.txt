@@ -1,0 +1,10 @@
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\bin\Debug\netcoreapp2.0\CSharp.deps.json
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\bin\Debug\netcoreapp2.0\CSharp.runtimeconfig.json
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\bin\Debug\netcoreapp2.0\CSharp.runtimeconfig.dev.json
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\bin\Debug\netcoreapp2.0\CSharp.dll
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\bin\Debug\netcoreapp2.0\CSharp.pdb
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\obj\Debug\netcoreapp2.0\CSharp.csproj.CoreCompileInputs.cache
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\obj\Debug\netcoreapp2.0\CSharp.AssemblyInfoInputs.cache
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\obj\Debug\netcoreapp2.0\CSharp.AssemblyInfo.cs
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\obj\Debug\netcoreapp2.0\CSharp.dll
+C:\Users\billy\Documents\GitHub\ByondInterpretedLanguage\CSharp\obj\Debug\netcoreapp2.0\CSharp.pdb
