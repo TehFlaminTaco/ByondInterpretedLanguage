@@ -7,8 +7,8 @@ namespace CSharp
     {
         static void Main(string[] args)
         {
-            TokenMatch t = new TokenMatch("Hello{1,2}");
-            Console.WriteLine("Hello World!");
+            TokenCompiler.GetTokens();
+            TokenCompiler.CompileTokens();
         }
     }
 }

@@ -1,0 +1,77 @@
+program:program_1+
+block:'\{' program_1* '\}'
+program_1:expression ';'?
+expression:withblock | switchblock | return | tryblock | forloop | ifblock | whileblock | whenblock | function_builder | eval | ternary | call | deop | arithmatic | unaryarithmatic | assignment | crementor | is | paranexp | constant | var
+exporblock:block | expression
+return:'break' expression? | 'return' expression?
+constant:numberconstant | stringconstant | tableconstant
+numberconstant:'-?(0(x[0-9A-Fa-f]+|b[01]+)|\d*\.\d+(e\d+)?|\d+(e\d+)?)'
+stringconstant: '"([^\\"]|\\(.|[^a]))*"' | "'([^\\']|\\(.|[^a]))*'" | '\[(=*)\[(?:.|[^a])*?\]\1\]' | templatestring
+templatestring:@0 templatestring_start templatestring_chunk? templatestring_chunks* templatestring_end 
+templatestring_start: '`' 
+templatestring_end: '`' 
+templatestring_chunk: '([^`[\\]|\\(.|[^a]))*' 
+templatestring_literal:@1 '\[' expression+ '\]' 
+templatestring_chunks:templatestring_literal templatestring_chunk?
+tableconstant:'\{' tablefill* '\}'
+tablefill:var '=' expression ','? | constant '=' expression ','? | expression ','?
+paranexp: '\(' expression '\)' 
+assignment:expression: operator? '=' expression
+crementor:expression: '\+\+' | '\+\+' expression | expression: '--' | '--' expression
+call:expression: '\(' call_1* '\)' | expression: stringconstant | expression: splat_call | expression: deop
+call_1:splat_call ','? | expression ','?
+splat_call:'\.\.\.' expression
+var:expression: index | local? '[a-zA-Z_]\w*'
+local:'local' | 'var'
+index:'\[' expression '\]' | '\.' '[a-zA-Z_]\w*' | '::' '[a-zA-Z_]\w*'
+function_builder:function var? arg_list exporblock | function var exporblock | arg_list '=>' exporblock | var '=>' exporblock
+function:'func' 'tion'?
+arg_list:'\(' arg_fill* splat_arg? '\)'
+splat_arg:'\.\.\.' var
+arg_fill:assignment ','? | var ','?
+eval:'eval' expression
+tryblock:'try' exporblock trycatch?
+trycatch:'catch' catch_name? exporblock
+catch_name:'\('? var '\)'?
+forloop:'for' var? 'in' expression exporblock | 'for' '\('? program_1{,3} '\)'? exporblock
+ifblock:'if' expression exporblock elif?
+elif:'else' exporblock
+whileblock:'while' expression exporblock
+switchblock:'switch' expression cases
+cases:'{' case* '}' | case*
+case:':' 'default' program_1+ | ':' 'case'? expression program_1+
+whenblock:'when' expression exporblock
+withblock:'with' expression exporblock
+ternary:expression: '\?' expression elset
+elset:':' expression
+is:expression: 'is' '\*' | expression: 'is' expression
+deop:'@' operator | '@' unoperator | '@' expression
+arithmatic:expression: operator expression
+unaryarithmatic:unoperator expression
+operator:add | sub | mult | intdiv | div | pow | mod | and | or | concat | bitor | bitand | bitxor | bitshiftl | bitshiftr | le | lt | ge | gt | eq | ne
+add:'\+'
+sub:'-'
+mult:'\*'
+div:'/'
+intdiv:'//'
+pow:'\^'
+mod:'\%'
+and:'and' | '&&'
+or:'or' | '\|\|'
+concat:'\.\.'
+bitor:'\|'
+bitand:'&'
+bitxor:'~'
+bitshiftl:'<<'
+bitshiftr:'>>'
+lt:'<'
+le:'<='
+gt:'>'
+ge:'>='
+eq:'=='
+ne:'!='
+unoperator:unm | not | len | bitnot
+not:'!'
+len:'#'
+bitnot:'~'
+unm:'-'
