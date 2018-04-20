@@ -9,6 +9,9 @@ namespace CSharp
         {
             TokenCompiler.GetTokens();
             TokenCompiler.CompileTokens();
+
+            Token result = TokenCompiler.MatchToken(@"print('Hello, World!')");
+            Console.WriteLine("Done");
         }
     }
 }

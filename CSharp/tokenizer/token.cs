@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 
 namespace Tokenizer{
-    struct Token{
-        public string name;
+    class Token{
+        public bool isOnlyString = false;
+        public string name = "";
         public List<TokenItem> data;
+        public string remainder = "";
+        public string text = "";
     }
 
     struct TokenItem{
