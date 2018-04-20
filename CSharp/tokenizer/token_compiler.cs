@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System;
 
-namespace Tokenizer{
+namespace ByondLang.Tokenizer{
     public class InvalidTokenException : System.Exception
     {
         public InvalidTokenException() { }
@@ -251,7 +251,7 @@ namespace Tokenizer{
                                     shortlen = contestant.remainder.Length;
                                     contestant.text = haystack.Substring(0, haystack.Length - contestant.remainder.Length);
                                     shortest = new Token();
-                                    shortest.name = kv.Key;
+                                    shortest.name = token_name;
                                     shortest.remainder = contestant.remainder;
                                     shortest.text = contestant.text;
                                     shortest.data = new List<TokenItem>();
@@ -276,6 +276,24 @@ namespace Tokenizer{
             }
             whitespace_stack.Pop();
             return null;
+        }
+
+        public static Token LocationiseTokens(Token token, List<SubTarget> curLocation){
+            if(!token.isOnlyString){
+                token.location = new List<SubTarget>(curLocation);
+                for(int d=0; d < token.data.Count; d++){
+                    for(int i=0; i < token.data[d].items.Count; i++){
+                        List<SubTarget> newLocation = new List<SubTarget>(curLocation);
+                        newLocation.Add(new SubTarget(d, i));
+                        LocationiseTokens(token.data[d].items[i], newLocation);
+                    }
+                }
+            }
+            return token;
+        }
+
+        public static Token LocationiseTokens(Token token){
+            return LocationiseTokens(token, new List<SubTarget>());
         }
     }
 
