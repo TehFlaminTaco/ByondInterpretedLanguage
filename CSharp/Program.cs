@@ -18,7 +18,7 @@ namespace ByondLang.CSharp
             parser.scope = scope;
 
             scope.code = result;
-            Variable.VarList varscope = scope.listFromParent(new Variable.VarList());  // TODO: Implement global table to replace this.
+            Variable.VarList varscope = scope.listFromParent(GlobalGenerator.Generate());  // TODO: Implement global table to replace this.
             scope.callstack.Push(new CallTarget(result, varscope));
 
             while(scope.callstack.Count>0)

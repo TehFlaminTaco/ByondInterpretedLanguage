@@ -1,6 +1,8 @@
 using ByondLang.Tokenizer;
 using ByondLang.States;
 using ByondLang.Variable;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using System;
 
 namespace ByondLang{
@@ -18,6 +20,16 @@ namespace ByondLang{
 
     class Parser{
         public Scope scope;
+
+        public static Regex escape_strings = new Regex(@"^(?:""|'|\[(=*)\[)(.*?)(?:""|'|]\1])$");
+
+        public Var ReturnValue(CallTarget target, Var val){
+            return target.returnTarget[target.returnTargetID] = val;
+        }
+
+        public Var ReturnValue(CallTarget target){
+            return ReturnValue(target, Var.nil);
+        }
 
         public void parse(Token token, CallTarget target, State state){
             switch(token.name){
@@ -43,9 +55,9 @@ namespace ByondLang{
                     }else{
                         if(token[0].name == "var"){
                             Var varData = state.returns[0];
-                            target.returnTarget[target.returnTargetID] = varData["target"][varData["index"]];
+                            varData.string_vars["target"].Get(scope, target.returnTarget, target.returnTargetID, varData.string_vars["index"]);
                         }else{
-                            target.returnTarget[target.returnTargetID] = state.returns[0];
+                            ReturnValue(target, state.returns[0]);
                         }
                     }
                     
@@ -73,15 +85,14 @@ namespace ByondLang{
                         scope.callstack.Push(new CallTarget(state.returns, 1, token.data[3].items[0], target.variables));
                         break;
                     }
-                    modifyTarget["target"][modifyTarget["index"]] = value;
-                    target.returnTarget[target.returnTargetID] = modifyTarget["target"][modifyTarget["index"]];
+                    modifyTarget.string_vars["target"].Set(scope, target.returnTarget, target.returnTargetID, modifyTarget.string_vars["index"], value);
                     break;
                 case "var":
                     if(token.data[0].name == "local"){
                         VarList vardata = new VarList();
-                        vardata["target"] = target.variables;
-                        vardata["index"] = token.data[1].items[0].text;
-                        target.returnTarget[target.returnTargetID] = vardata;
+                        vardata.string_vars["target"] = target.variables;
+                        vardata.string_vars["index"] = token.data[1].items[0].text;
+                        ReturnValue(target, vardata);
                     }else{
                         if(state == null){
                             target.state = state = new State();
@@ -110,22 +121,29 @@ namespace ByondLang{
                             break;
                         }
                         VarList vardata = new VarList();
-                        vardata["target"] = table_target;
-                        vardata["index"] = index;
-                        target.returnTarget[target.returnTargetID] = vardata;
+                        vardata.string_vars["target"] = table_target;
+                        vardata.string_vars["index"] = index;
+                        ReturnValue(target, vardata);
                     }
                     break;
                 case "index":
                     if(token[0].name == "\\["){
                         scope.callstack.Push(new CallTarget(target.returnTarget, target.returnTargetID, token[1][0], target.variables));
                     }else if(token[0].name == "\\."){
-                        target.returnTarget[target.returnTargetID] = token[1][0][0][0].text;
+                        ReturnValue(target, token[1][0].text);
                     }else{
                         throw new Exception("Currying not yet implemented, but neither are functions so who gives a fuck."); // TODO: Implement currying.
                     }
                     break;
                 case "numberconstant":
-                    target.returnTarget[target.returnTargetID] = double.Parse(token.text);
+                    ReturnValue(target, double.Parse(token.text));
+                    break;
+                case "stringconstant":
+                    if(token[0].name == "templatestring"){
+                        // TODO:
+                    }else{
+                        target.returnTarget[target.returnTargetID] = Regex.Unescape(escape_strings.Replace(token[0][0].text, "$2"));
+                    }
                     break;
                 case "tableconstant":
                     if(state == null){
@@ -153,24 +171,92 @@ namespace ByondLang{
                         for(var i=0; i < fills.items.Count; i++){
                             Token this_fill = fills[i];
                             if(this_fill[0].name == "expression"){
-                                newList[currentIndex++] = state.returns[i*2];
+                                newList.number_vars[currentIndex++] = state.returns[i*2];
                             }else if(this_fill[0].name == "constant"){
-                                newList[state.returns[i*2+1]] = state.returns[i*2];
+                                newList.Set(scope, new Dictionary<int, Var>(), 0, state.returns[i*2+1], state.returns[i*2]);
                             }else{
-                                newList[this_fill[0][0].text] = state.returns[i*2];
+                                newList.string_vars[this_fill[0][0].text] = state.returns[i*2];
                             }
                         }
-                        target.returnTarget[target.returnTargetID] = newList;
+                        ReturnValue(target, newList);
                     }
                     break;
                 case "call":
                     if(state == null){
                         target.state = state = new State();
                     }
+                    Var toCall = null;
                     if(!state.returns.ContainsKey(0)){
                         scope.callstack.Push(target);
                         scope.callstack.Push(new CallTarget(state.returns, 0, token[0][0], target.variables));
+                        break;
+                    }else{
+                        toCall = state.returns[0];
                     }
+                    switch(token[1].name){
+                        case "splat_call":
+                            if(!state.returns.ContainsKey(1)){
+                                scope.callstack.Push(target);
+                                scope.callstack.Push(new CallTarget(state.returns, 1, token[1][0][1][0], target.variables));
+                            }else{
+                                if(state.returns[1] is VarList)
+                                    toCall.Call(scope, target.returnTarget, target.returnTargetID, (VarList)state.returns[1]);
+                                else
+                                    toCall.Call(scope, target.returnTarget, target.returnTargetID, state.returns[1]);
+                            }
+                            return;
+                        case "\\(":
+                            TokenItem args = token[2];
+                            for(int i=0; i < args.items.Count; i++){
+                                if(!state.returns.ContainsKey(i*2+1)){
+                                    scope.callstack.Push(target);
+                                    switch(args[i][0].name){
+                                        case "expression":
+                                            scope.callstack.Push(new CallTarget(state.returns, i*2+1, args[i][0][0], target.variables));
+                                            break;
+                                        case "splat_call":
+                                            scope.callstack.Push(new CallTarget(state.returns, i*2+1, args[i][0][0][1][0], target.variables));
+                                            break;
+                                        case "constant":
+                                            scope.callstack.Push(new CallTarget(state.returns, i*2+1, args[i][0][0], target.variables));
+                                            scope.callstack.Push(new CallTarget(state.returns, i*2+2, args[i][2][0], target.variables));
+                                            break;
+                                        case "var":
+                                            scope.callstack.Push(new CallTarget(state.returns, i*2+1, args[i][0][0], target.variables));
+                                            break;
+                                    }
+                                    return;
+                                }
+                            }
+                            VarList callArguments = new VarList();
+                            scope.callstack.Push(new DoLater(delegate{
+                                toCall.Call(scope, target.returnTarget, target.returnTargetID, callArguments);
+                            }));
+                            int currentIndex = 0;
+                            for(int i=0; i < args.items.Count; i++){
+                                switch(args[i][0].name){
+                                    case "expression":
+                                        callArguments.number_vars[currentIndex++] = state.returns[i*2+1];
+                                        break;
+                                    case "splat_call":
+                                        foreach(KeyValuePair<Var, Var> v in state.returns[i*2+1]){
+                                            if(v.Key is Number)
+                                                callArguments.number_vars[currentIndex++] = v.Value;
+                                            else
+                                                callArguments.Set(scope, new Dictionary<int, Var>(), 0, v.Key, v.Value, true);
+                                        }
+                                        break;
+                                    case "constant":
+                                        callArguments.Set(scope, new Dictionary<int, Var>(), 0, state.returns[i*2+1], state.returns[i*2+2], true);
+                                        break;
+                                    case "var":
+                                        callArguments.Set(scope, new Dictionary<int, Var>(), 0, args[i][0][0].text, state.returns[i*2+1], true);
+                                        break;
+                                }
+                            }
+                            return;
+                    }
+                    ReturnValue(target);
                     break;
                 default:
                     throw new UnknownTokenException(token.name);

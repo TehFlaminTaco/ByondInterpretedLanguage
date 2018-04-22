@@ -18,7 +18,11 @@ namespace ByondLang{
         public Dictionary<int, Var> returns = new Dictionary<int, Var>();
     }
 
-    class CallTarget{
+    interface AsyncCallable{
+        void Run(Parser parser);
+    }
+
+    class CallTarget : AsyncCallable{
         public Token target;
         public Dictionary<int, Var> returnTarget = new Dictionary<int, Var>(); // We implciitely initilize this, to prevent errors if we don't actually use this. Laziness.
         public int returnTargetID = -1;
@@ -36,21 +40,36 @@ namespace ByondLang{
             this.returnTarget = returnTarget;
             this.returnTargetID = returnTargetID;
         }
+
+        public void Run(Parser parser){
+            parser.parse(this.target, this, this.state);
+        }
+    }
+
+    delegate void AsyncCall(Parser parser);
+
+    class DoLater : AsyncCallable{
+        AsyncCall todo;
+        public DoLater(AsyncCall func){
+            todo = func;
+        }
+        public void Run(Parser parser){
+            todo(parser);
+        }
     }
 
     class Scope{
 
         public Parser parser;
 
-        public Stack<CallTarget> callstack = new Stack<CallTarget>();
+        public Stack<AsyncCallable> callstack = new Stack<AsyncCallable>();
 
         public Token code;
 
         public void ExecuteNextEntry(){
             if(callstack.Count>0){
-                CallTarget toRun = callstack.Pop();
-                Token target = toRun.target;
-                parser.parse(target, toRun, toRun.state);
+                AsyncCallable toRun = callstack.Pop();
+                toRun.Run(parser);
 
             }
         }
@@ -60,7 +79,7 @@ namespace ByondLang{
             VarList meta;
             createdList.meta = meta = new VarList();
 
-            meta["_index"] = parent;
+            meta.string_vars["_parent"] = parent;
 
             return createdList;
         }

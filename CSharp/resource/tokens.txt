@@ -19,7 +19,7 @@ paranexp: '\(' expression '\)'
 assignment:expression: operator? '=' expression
 crementor:expression: '\+\+' | '\+\+' expression | expression: '--' | '--' expression
 call:expression: '\(' call_1* '\)' | expression: stringconstant | expression: splat_call | expression: deop
-call_1:splat_call ','? | expression ','?
+call_1:splat_call ','? | var '=' expression ','? | constant '=' expression ','? | expression ','?
 splat_call:'\.\.\.' expression
 var:expression: index | local? '[a-zA-Z_]\w*'
 local:'local' | 'var'
