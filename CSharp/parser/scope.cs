@@ -15,42 +15,26 @@ namespace ByondLang{
     }
 
     class State{
-
+        public Dictionary<int, Var> returns = new Dictionary<int, Var>();
     }
 
     class CallTarget{
-        List<SubTarget> target = new List<SubTarget>();
-        public Dictionary<int, Var> returnTarget;
+        public Token target;
+        public Dictionary<int, Var> returnTarget = new Dictionary<int, Var>(); // We implciitely initilize this, to prevent errors if we don't actually use this. Laziness.
         public int returnTargetID = -1;
 
-        public State state;
+        public State state = null;
 
-        public CallTarget(List<SubTarget> target){
+        public VarList variables;
+
+        public CallTarget(Token target, VarList variables){
             this.target = target;
+            this.variables = variables;
         }
 
-        public CallTarget(params SubTarget[] targets){
-            foreach(SubTarget t in targets){
-                target.Add(t);
-            }
-        }
-
-        public CallTarget(Dictionary<int, Var> returnTarget, int returnTargetID, List<SubTarget> target) : this(target){
+        public CallTarget(Dictionary<int, Var> returnTarget, int returnTargetID, Token target, VarList variables) : this(target, variables){
             this.returnTarget = returnTarget;
             this.returnTargetID = returnTargetID;
-        }
-
-        public CallTarget(Dictionary<int, Var> returnTarget, int returnTargetID, params SubTarget[] targets) : this(targets){
-            this.returnTarget = returnTarget;
-            this.returnTargetID = returnTargetID;
-        }
-
-        public Token GetToken(Token root){
-            for(int i = target.Count - 1; i>=0; i--){
-                SubTarget sub_target = target[i];
-                root = root.data[sub_target.dataID].items[sub_target.itemID];
-            }
-            return root;
         }
     }
 
@@ -65,10 +49,20 @@ namespace ByondLang{
         public void ExecuteNextEntry(){
             if(callstack.Count>0){
                 CallTarget toRun = callstack.Pop();
-                Token target = toRun.GetToken(code);
+                Token target = toRun.target;
                 parser.parse(target, toRun, toRun.state);
 
             }
+        }
+
+        public VarList listFromParent(VarList parent){
+            VarList createdList = new VarList();
+            VarList meta;
+            createdList.meta = meta = new VarList();
+
+            meta["_index"] = parent;
+
+            return createdList;
         }
 
     }

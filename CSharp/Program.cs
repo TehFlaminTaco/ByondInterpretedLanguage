@@ -10,7 +10,7 @@ namespace ByondLang.CSharp
             TokenCompiler.GetTokens();
             TokenCompiler.CompileTokens();
 
-            Token result = TokenCompiler.LocationiseTokens(TokenCompiler.MatchToken(@"x=3; print(x+3)"));
+            Token result = TokenCompiler.LocationiseTokens(TokenCompiler.MatchToken(@"print('Hello, World!')"));
 
             Scope scope = new Scope();
             Parser parser = new Parser();
@@ -18,7 +18,8 @@ namespace ByondLang.CSharp
             parser.scope = scope;
 
             scope.code = result;
-            scope.callstack.Push(new CallTarget());
+            Variable.VarList varscope = scope.listFromParent(new Variable.VarList());  // TODO: Implement global table to replace this.
+            scope.callstack.Push(new CallTarget(result, varscope));
 
             while(scope.callstack.Count>0)
                 scope.ExecuteNextEntry();
