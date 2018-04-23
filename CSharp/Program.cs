@@ -1,30 +1,23 @@
-﻿using System;
+using ByondLang.Variable;
 using ByondLang.Tokenizer;
 
-namespace ByondLang.CSharp
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            TokenCompiler.GetTokens();
-            TokenCompiler.CompileTokens();
+namespace ByondLang{
+    class Program{
+        public Scope scope;
+        public Parser parser;
+        public VarList globals;
+        public string output;
 
-            Token result = TokenCompiler.LocationiseTokens(TokenCompiler.MatchToken(@"print('Hello, World!')"));
-
-            Scope scope = new Scope();
-            Parser parser = new Parser();
+        public Program(string CodeToExecute){
+            scope = new Scope();
+            parser = new Parser();
+            globals = scope.listFromParent(GlobalGenerator.Generate());
             scope.parser = parser;
             parser.scope = scope;
+            scope.program = this;
 
-            scope.code = result;
-            Variable.VarList varscope = scope.listFromParent(GlobalGenerator.Generate());  // TODO: Implement global table to replace this.
-            scope.callstack.Push(new CallTarget(result, varscope));
-
-            while(scope.callstack.Count>0)
-                scope.ExecuteNextEntry();
-
-            Console.WriteLine("Done");
+            scope.code = TokenCompiler.LocationiseTokens(TokenCompiler.MatchToken(CodeToExecute));
+            scope.callstack.Push(new CallTarget(scope.code, globals));
         }
     }
 }

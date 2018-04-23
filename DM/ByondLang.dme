@@ -6,4 +6,6 @@
 // BEGIN_PREFERENCES
 // END_PREFERENCES
 // BEGIN_INCLUDE
+#include "world.dm"
+#include "map.dmm"
 // END_INCLUDE

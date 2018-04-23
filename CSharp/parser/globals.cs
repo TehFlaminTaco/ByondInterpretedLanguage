@@ -31,7 +31,7 @@ namespace ByondLang{
                             }
                         }
                     }
-                    System.Console.WriteLine("{0}", Output);
+                    scope.program.output += Output + "\r\n";
                     returnTarget[returnID] = Output;
                 });
                 scope.callstack.Push(looping_func);

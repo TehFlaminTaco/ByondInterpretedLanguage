@@ -66,11 +66,19 @@ namespace ByondLang{
 
         public Token code;
 
+        public Program program;
+
         public void ExecuteNextEntry(){
             if(callstack.Count>0){
                 AsyncCallable toRun = callstack.Pop();
                 toRun.Run(parser);
 
+            }
+        }
+
+        public void ExecuteNextN(int amount){
+            while(amount-->0){
+                ExecuteNextEntry();
             }
         }
 
