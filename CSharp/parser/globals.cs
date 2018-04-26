@@ -6,9 +6,8 @@ namespace ByondLang{
         public static VarList globals;
         public static VarList Generate(){
             globals = new VarList();
-            globals.string_vars["string"] = new VarList();
             globals.string_vars["table"] = Table();
-            globals.string_vars["print"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            globals.string_vars["print"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 State state = new State();
                 DoLater looping_func = null;
                 looping_func = new DoLater(delegate{
@@ -25,9 +24,9 @@ namespace ByondLang{
                     string joiner = "";
                     foreach(KeyValuePair<double,Var> arg in arguments.number_vars){
                         if(arg.Key%1 == 0){
-                            if(state.returns[(int)arg.Key] is String){
+                            if(state.returns[(int)arg.Key] is VarString){
                                 Output += joiner;
-                                Output += ((String)state.returns[(int)arg.Key]).data;
+                                Output += ((VarString)state.returns[(int)arg.Key]).data;
                                 joiner = "\t";
                             }
                         }
@@ -37,7 +36,7 @@ namespace ByondLang{
                 });
                 scope.callstack.Push(looping_func);
             });
-            globals.string_vars["write"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            globals.string_vars["write"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 State state = new State();
                 DoLater looping_func = null;
                 looping_func = new DoLater(delegate{
@@ -54,9 +53,9 @@ namespace ByondLang{
                     string joiner = "";
                     foreach(KeyValuePair<double,Var> arg in arguments.number_vars){
                         if(arg.Key%1 == 0){
-                            if(state.returns[(int)arg.Key] is String){
+                            if(state.returns[(int)arg.Key] is VarString){
                                 Output += joiner;
-                                Output += ((String)state.returns[(int)arg.Key]).data;
+                                Output += ((VarString)state.returns[(int)arg.Key]).data;
                                 joiner = "\t";
                             }
                         }
@@ -66,11 +65,12 @@ namespace ByondLang{
                 });
                 scope.callstack.Push(looping_func);
             });
-            globals.string_vars["event"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = new Event();
+            globals.string_vars["event"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = new VarEvent();
             });
 
             globals.string_vars["term"] = Term();
+            globals.string_vars["string"] = String();
 
             return globals;
         }
@@ -78,92 +78,101 @@ namespace ByondLang{
         public static VarList Table(){
             VarList table_VAR = new VarList();
             Dictionary<string, Var> table = table_VAR.string_vars;
-            table["set_meta"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            table["set_meta"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 arguments.number_vars[0].meta = arguments.number_vars[1];
                 returnTarget[returnID] = arguments.number_vars[0];
             });
-            table["get_meta"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            table["get_meta"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = arguments.number_vars[0].meta;
             });
             return table_VAR;
+        }
+
+        public static VarList String(){
+            VarList string_VAR = new VarList();
+            Dictionary<string, Var> str = string_VAR.string_vars;
+
+
+
+            return string_VAR;
         }
 
         public static VarList Term(){
             VarList term_VAR = new VarList();
             Dictionary<string, Var> term = term_VAR.string_vars;
 
-            term["set_foreground"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["set_foreground"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1) && arguments.number_vars.ContainsKey(2)){
                     var red = arguments.number_vars[0];
                     var green = arguments.number_vars[1];
                     var blue = arguments.number_vars[2];
-                    if(red is Number && green is Number && blue is Number){
-                        scope.program.terminal.foreground = new Color((float)((Number)red).data, (float)((Number)green).data, (float)((Number)blue).data);
+                    if(red is VarNumber && green is VarNumber && blue is VarNumber){
+                        scope.program.terminal.foreground = new Color((float)((VarNumber)red).data, (float)((VarNumber)green).data, (float)((VarNumber)blue).data);
                     }
                 }
                 returnTarget[returnID] = Var.nil;
             });
-            term["set_background"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["set_background"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1) && arguments.number_vars.ContainsKey(2)){
                     var red = arguments.number_vars[0];
                     var green = arguments.number_vars[1];
                     var blue = arguments.number_vars[2];
-                    if(red is Number && green is Number && blue is Number){
-                        scope.program.terminal.background = new Color((float)((Number)red).data, (float)((Number)green).data, (float)((Number)blue).data);
+                    if(red is VarNumber && green is VarNumber && blue is VarNumber){
+                        scope.program.terminal.background = new Color((float)((VarNumber)red).data, (float)((VarNumber)green).data, (float)((VarNumber)blue).data);
                     }
                 }
                 returnTarget[returnID] = Var.nil;
             });
-            term["set_cursor"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["set_cursor"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1)){
                     var x = arguments.number_vars[0];
                     var y = arguments.number_vars[1];
-                    if(x is Number && y is Number){
-                        scope.program.terminal.cursor_x = (int)(Number)x;
-                        scope.program.terminal.cursor_y = (int)(Number)y;
+                    if(x is VarNumber && y is VarNumber){
+                        scope.program.terminal.cursor_x = (int)(VarNumber)x;
+                        scope.program.terminal.cursor_y = (int)(VarNumber)y;
                     }
                 }
                 returnTarget[returnID] = Var.nil;
             });
-            term["set_cursor_x"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["set_cursor_x"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0)){
                     var x = arguments.number_vars[0];
-                    if(x is Number){
-                        scope.program.terminal.cursor_x = (int)(Number)x;
+                    if(x is VarNumber){
+                        scope.program.terminal.cursor_x = (int)(VarNumber)x;
                     }
                 }
                 returnTarget[returnID] = Var.nil;
             });
-            term["set_cursor_y"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["set_cursor_y"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0)){
                     var y = arguments.number_vars[0];
-                    if(y is Number){
-                        scope.program.terminal.cursor_y = (int)(Number)y;
+                    if(y is VarNumber){
+                        scope.program.terminal.cursor_y = (int)(VarNumber)y;
                     }
                 }
                 returnTarget[returnID] = Var.nil;
             });
-            term["get_cursor"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_cursor"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = new VarList(scope.program.terminal.cursor_x, scope.program.terminal.cursor_y);
             });
-            term["get_cursor_x"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_cursor_x"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = scope.program.terminal.cursor_x;
             });
-            term["get_cursor_y"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_cursor_y"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = scope.program.terminal.cursor_y;
             });
-            term["clear"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["clear"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 scope.program.terminal.Clear();
                 returnTarget[returnID] = Var.nil;
             });
             term["write"] = globals.string_vars["write"];
-            term["get_size"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_size"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = new VarList(scope.program.terminal.cursor_x, scope.program.terminal.cursor_y);
             });
-            term["get_width"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_width"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = scope.program.terminal.width;
             });
-            term["get_height"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            term["get_height"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = scope.program.terminal.height;
             });
 
