@@ -8,20 +8,20 @@ namespace ByondLang{
 
                 State state = new State();
                 scope.callstack.Push(new DoLater(delegate{
-                    if(!(state.returns[0] is Variable.VarString)){
+                    if(!(state.returns[0] is VarString)){
                         returnTarget[returnID] = Var.nil;return;
                     }
-                    if(!(state.returns[1] is Variable.VarString)){
+                    if(!(state.returns[1] is VarString)){
                         returnTarget[returnID] = Var.nil;return;
                     }
-                    returnTarget[returnID] = ((Variable.VarString)state.returns[0]).data + ((Variable.VarString)state.returns[1]).data;
+                    returnTarget[returnID] = ((VarString)state.returns[0]).data + ((VarString)state.returns[1]).data;
                 }));
-                if(arguments.number_vars[0] is Variable.VarString){
+                if(arguments.number_vars[0] is VarString){
                     state.returns[0] = arguments.number_vars[0];
                 }else{
                     arguments.number_vars[0].ToString(scope, state.returns, 0);
                 }
-                if(arguments.number_vars[1] is Variable.VarString){
+                if(arguments.number_vars[1] is VarString){
                     state.returns[1] = arguments.number_vars[1];
                 }else{
                     arguments.number_vars[1].ToString(scope, state.returns, 1);
@@ -178,7 +178,7 @@ namespace ByondLang{
             number["_or"] = Or;
 
             number["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = new Variable.VarString(""+(double)(VarNumber) arguments.number_vars[0]);
+                returnTarget[returnID] = new VarString(""+(double)(VarNumber) arguments.number_vars[0]);
             });
             return outp;
         }
@@ -190,20 +190,20 @@ namespace ByondLang{
             str["_concat"] = GenericConcat;
             str["_index"] = globals.string_vars["string"];
             str["_eq[string]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Variable.VarString left = (Variable.VarString)arguments.number_vars[0];
-                Variable.VarString right = (Variable.VarString)arguments.number_vars[1];
+                VarString left = (VarString)arguments.number_vars[0];
+                VarString right = (VarString)arguments.number_vars[1];
                 returnTarget[returnID] = left.data == right.data ? 1 : 0;
             });
             str["_ne[string]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Variable.VarString left = (Variable.VarString)arguments.number_vars[0];
-                Variable.VarString right = (Variable.VarString)arguments.number_vars[1];
+                VarString left = (VarString)arguments.number_vars[0];
+                VarString right = (VarString)arguments.number_vars[1];
                 returnTarget[returnID] = left.data != right.data ? 1 : 0;
             });
             str["_eq"] = ReturnZero;
             str["_ne"] = ReturnOne;
 
             str["_len"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Variable.VarString left = (Variable.VarString)arguments.number_vars[0];
+                VarString left = (VarString)arguments.number_vars[0];
                 returnTarget[returnID] = left.data.Length;
             });
 
@@ -221,8 +221,8 @@ namespace ByondLang{
             Dictionary<string, Var> function = outp.string_vars;
             function["_concat"] = GenericConcat;
             function["_eq[function]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Variable.VarFunction left = (Variable.VarFunction)arguments.number_vars[0];
-                Variable.VarFunction right = (Variable.VarFunction)arguments.number_vars[1];
+                VarFunction left = (VarFunction)arguments.number_vars[0];
+                VarFunction right = (VarFunction)arguments.number_vars[1];
                 returnTarget[returnID] = left == right ? 1 : 0;
             });
             function["_ne[function]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){

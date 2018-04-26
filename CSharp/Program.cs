@@ -7,10 +7,10 @@ namespace ByondLang{
         public Parser parser;
         public Terminal terminal;
 
-        public Program(string CodeToExecute){
+        public Program(string CodeToExecute, string ComputerRef){
             scope = new Scope(GlobalGenerator.Generate());
             parser = new Parser();
-            terminal = new Terminal();
+            terminal = new Terminal(ComputerRef);
             scope.parser = parser;
             parser.scope = scope;
             scope.program = this;

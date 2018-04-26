@@ -75,7 +75,7 @@ Content-Type: text/html
                                 case "new_program":
                                     int programID;
                                     response += programID = NextFreeProgram();
-                                    programs[programID]=new Program(req["code"]==null?"":req["code"]);
+                                    programs[programID]=new Program(req["code"]==null?"":req["code"],req["ref"]==null?"":req["ref"]);
                                     break;
                                 case "execute":
                                     int id = programs.Count;
@@ -112,6 +112,23 @@ Content-Type: text/html
                                         int.TryParse(req["id"], out id);
                                     if(programs.ContainsKey(id)){
                                         programs.Remove(id);
+                                        response += "1";
+                                    }else{
+                                        response += "0";
+                                    }
+                                    break;
+                                case "topic":
+                                    id = programs.Count;
+                                    if(req["id"]!=null)
+                                        int.TryParse(req["id"], out id);
+                                    if(programs.ContainsKey(id)){
+                                        Program prg = programs[id];
+                                        prg.scope.callstack.Push(new DoLater(delegate{
+                                            Variable.VarList args = new Variable.VarList();
+                                            args.number_vars[0] = req["topic"]==null?"":req["topic"];
+                                            args.string_vars["topic"] = req["topic"]==null?"":req["topic"];
+                                            prg.scope.globals.meta.string_vars["_parent"].string_vars["term"].string_vars["topic"].Call(prg.scope, new Dictionary<int, Variable.Var>(), 0, args);
+                                        }));
                                         response += "1";
                                     }else{
                                         response += "0";

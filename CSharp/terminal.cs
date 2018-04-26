@@ -7,12 +7,14 @@ namespace ByondLang{
         public int cursor_y = 0;
         public int width = 64;
         public int height = 20;
+        string computer_ref;
         TerminalChar[][] char_array;
 
         public Color background = new Color(0,0,0);
         public Color foreground = new Color(255,255,255);
 
-        public Terminal(int width, int height){
+        public Terminal(int width, int height, string computer_ref){
+            this.computer_ref = computer_ref;
             this.width = width;
             this.height = height;
             Clear();
@@ -25,7 +27,7 @@ namespace ByondLang{
             for(int y = 0; y < height; y++){
                 char_array[y] = new TerminalChar[width];
                 for(int x = 0; x < width; x++){
-                    char_array[y][x] = new TerminalChar(' ', background, foreground);
+                    char_array[y][x] = new TerminalChar(' ', background, foreground, "");
                 }
             }
         }
@@ -39,11 +41,15 @@ namespace ByondLang{
                 for(int x=0; x < width; x++){
                     TerminalChar toDraw = char_array[y][x];
                     string to_Write = "";
-                    if(!(x > 1 && toDraw.Like(char_array[y][x-1])))
+                    if(toDraw.topic != "" && !(x > 0 && toDraw.topic == char_array[y][x-1].topic))
+                        to_Write += String.Format("<a style='text-decoration:none;' href='?src={0};PRG_topic={1}'>", computer_ref, HttpUtility.UrlEncode(toDraw.topic));
+                    if(!(x > 0 && toDraw.Like(char_array[y][x-1])))
                         to_Write += String.Format("<span style=\"color:{0};background-color:{1}\">", toDraw.foreground.toHTML(), toDraw.background.toHTML());
                     to_Write += encode(toDraw.text);
                     if(!(x < width-1 && toDraw.Like(char_array[y][x+1])))
                         to_Write += "</span>";
+                    if(toDraw.topic != "" && !(x < width-1 && toDraw.topic == char_array[y][x+1].topic))
+                        to_Write += "</a>";
                     outp += to_Write;
                 }
             }
@@ -57,7 +63,7 @@ namespace ByondLang{
             return outp;
         }
 
-        public Terminal() : this(64, 20){}
+        public Terminal(string computer_ref) : this(64, 20, computer_ref){}
 
         public void MoveRight(){
             cursor_x++;
@@ -76,7 +82,7 @@ namespace ByondLang{
                 }
                 char_array[height-1] = new TerminalChar[width];
                 for(int x = 0; x < width; x++){
-                    char_array[height-1][x] = new TerminalChar(' ', background, foreground);
+                    char_array[height-1][x] = new TerminalChar(' ', background, foreground, "");
                 }
             }
         }
@@ -91,8 +97,22 @@ namespace ByondLang{
                     while(cursor_x%4>0)
                         MoveRight();
                 }else{
-                    char_array[cursor_y][cursor_x] = new TerminalChar(c, background, foreground);
+                    char_array[cursor_y][cursor_x] = new TerminalChar(c, background, foreground, "");
                     MoveRight();
+                }
+            }
+        }
+
+        public void SetTopic(int x, int y, string topic){
+            if(y >= 0 && x >= 0 && x < width && y < height){
+                char_array[y][x].topic = topic;
+            }
+        }
+
+        public void SetTopic(int x, int y, int w, int h, string topic){
+            for(int X=0; X<w; X++){
+                for(int Y=0; Y<h; Y++){
+                    SetTopic(x+X, y+Y, topic);
                 }
             }
         }
@@ -102,15 +122,17 @@ namespace ByondLang{
         public char text = ' ';
         public Color background = new Color(0,0,0);
         public Color foreground = new Color(255,255,255);
+        public string topic = "";
+
 
         public TerminalChar(){
-
         }
 
-        public TerminalChar(char text, Color background, Color foreground){
+        public TerminalChar(char text, Color background, Color foreground, string topic) : base(){
             this.text = text;
             this.background = background.Copy();
             this.foreground = foreground.Copy();
+            this.topic = topic;
         }
 
         public bool Like(TerminalChar other){

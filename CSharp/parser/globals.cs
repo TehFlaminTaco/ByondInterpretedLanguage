@@ -6,7 +6,6 @@ namespace ByondLang{
         public static VarList globals;
         public static VarList Generate(){
             globals = new VarList();
-            globals.string_vars["table"] = Table();
             globals.string_vars["print"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 State state = new State();
                 DoLater looping_func = null;
@@ -43,8 +42,8 @@ namespace ByondLang{
                     foreach(KeyValuePair<double,Var> arg in arguments.number_vars){
                         if(arg.Key%1 == 0){
                             if(!state.returns.ContainsKey((int)arg.Key)){
-                                arg.Value.ToString(scope, state.returns, (int)arg.Key);
                                 scope.callstack.Push(looping_func);
+                                arg.Value.ToString(scope, state.returns, (int)arg.Key);
                                 return;
                             }
                         }
@@ -68,7 +67,11 @@ namespace ByondLang{
             globals.string_vars["event"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = new VarEvent();
             });
+            globals.string_vars["type"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = arguments.number_vars[0].type;
+            });
 
+            globals.string_vars["table"] = Table();
             globals.string_vars["term"] = Term();
             globals.string_vars["string"] = String();
 
@@ -101,6 +104,8 @@ namespace ByondLang{
             VarList term_VAR = new VarList();
             Dictionary<string, Var> term = term_VAR.string_vars;
 
+            term["topic"] = new VarEvent();
+
             term["set_foreground"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1) && arguments.number_vars.ContainsKey(2)){
                     var red = arguments.number_vars[0];
@@ -112,6 +117,9 @@ namespace ByondLang{
                 }
                 returnTarget[returnID] = Var.nil;
             });
+            term["get_foreground"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = new VarList(scope.program.terminal.foreground.r, scope.program.terminal.foreground.g, scope.program.terminal.foreground.b);
+            });
             term["set_background"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1) && arguments.number_vars.ContainsKey(2)){
                     var red = arguments.number_vars[0];
@@ -122,6 +130,9 @@ namespace ByondLang{
                     }
                 }
                 returnTarget[returnID] = Var.nil;
+            });
+            term["get_background"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = new VarList(scope.program.terminal.background.r, scope.program.terminal.background.g, scope.program.terminal.background.b);
             });
             term["set_cursor"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1)){
@@ -174,6 +185,14 @@ namespace ByondLang{
             });
             term["get_height"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = scope.program.terminal.height;
+            });
+            term["set_topic"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = arguments.number_vars[4];
+                scope.program.terminal.SetTopic((int)(double)(VarNumber)arguments.number_vars[0],
+                                                (int)(double)(VarNumber)arguments.number_vars[1],
+                                                (int)(double)(VarNumber)arguments.number_vars[2],
+                                                (int)(double)(VarNumber)arguments.number_vars[3],
+                                                (string)(VarString)arguments.number_vars[4]);
             });
 
             return term_VAR;

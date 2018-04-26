@@ -182,6 +182,7 @@ namespace ByondLang.Variable{
         }
 
         public virtual void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            returnTarget[returnID] = this;
             var _call = GetMeta(scope, "_call");
             if(_call!=nil){
                 scope.callstack.Push(new DoLater(delegate{
@@ -196,7 +197,6 @@ namespace ByondLang.Variable{
                 }));
                 return;
             }
-            returnTarget[returnID] = this;
         }
 
         public void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, params Var[] arguments){
@@ -372,6 +372,8 @@ namespace ByondLang.Variable{
         public override void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
             if(todo!=null)
                 todo(scope, returnTarget, returnID, arguments);
+            else
+                returnTarget[returnID] = Var.nil;
         }
 
         public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){

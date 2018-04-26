@@ -1007,7 +1007,7 @@ namespace ByondLang{
                         case "splat_call":
                             if(!state.returns.ContainsKey(1)){
                                 scope.callstack.Push(target);
-                                parse(new CallTarget(state.returns, 0, token[1][0][1][0], target.variables));
+                                parse(new CallTarget(state.returns, 1, token[1][0][1][0], target.variables));
                             }else{
                                 if(state.returns[1] is VarList)
                                     toCall.Call(scope, target.returnTarget, target.returnTargetID, (VarList)state.returns[1]);
