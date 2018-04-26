@@ -272,7 +272,9 @@ namespace ByondLang{
             });
             list["_eq"] = ReturnZero;
             list["_ne"] = ReturnOne;
-            list["_index"] = globals.string_vars["table"];
+            list["_index"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                globals.string_vars["table"].Get(scope, returnTarget, returnID, arguments.number_vars[1], true);
+            });
 
             list["_len"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarList left = (VarList)arguments.number_vars[0];

@@ -38,7 +38,7 @@ ifblock:'if' expression exporblock elif?
 elif:'else' exporblock
 whileblock:'while' expression exporblock
 switchblock:'switch' expression cases
-cases:'{' case* '}' | case*
+cases:'\{' case* '\}' | case*
 case:':' 'default' program_1+ | ':' 'case'? expression program_1+
 whenblock:'when' expression exporblock
 withblock:'with' expression exporblock

@@ -15,8 +15,8 @@ namespace ByondLang{
                     foreach(KeyValuePair<double,Var> arg in arguments.number_vars){
                         if(arg.Key%1 == 0){
                             if(!state.returns.ContainsKey((int)arg.Key)){
-                                arg.Value.ToString(scope, state.returns, (int)arg.Key);
                                 scope.callstack.Push(looping_func);
+                                arg.Value.ToString(scope, state.returns, (int)arg.Key);
                                 return;
                             }
                         }
