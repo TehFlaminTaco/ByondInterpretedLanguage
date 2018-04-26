@@ -26,14 +26,37 @@ namespace ByondLang.Variable{
 
         public Var meta = nil;
 
+        public VarList handler;
+
         public string type = "nil";
 
-        public Var GetMeta(string key){
+        public Var FromDefaultMeta(Scope scope, string key){
+            if(scope.metas.ContainsKey(type)){
+                if(scope.metas[type].string_vars.ContainsKey(key)){
+                    return scope.metas[type].string_vars[key];
+                }
+            }
+            return nil;
+        }
+
+        public Var GetMeta(Scope scope, string key){
+            if(meta == null)
+                return FromDefaultMeta(scope, key);
             if(meta == nil)
-                return nil;
+                return FromDefaultMeta(scope, key);
             if(!meta.string_vars.ContainsKey(key))
-                return nil;
+                return FromDefaultMeta(scope, key);
             return meta.string_vars[key];
+        }
+
+        public bool HasVariable(Var key){
+            if(key is Number){
+                return number_vars.ContainsKey((double)(Number)key);
+            }
+            if(key is String){
+                return string_vars.ContainsKey((string)(String)key);
+            }
+            return other_vars.ContainsKey(key);
         }
 
         public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, bool force){
@@ -62,14 +85,14 @@ namespace ByondLang.Variable{
             }
 
             if(!force){
-                Var parent = GetMeta("_parent");
+                Var parent = GetMeta(scope, "_parent");
                 if(parent != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         parent.Get(scope, returnTarget, returnID, key);
                     }));
                     return;
                 }
-                Var index = GetMeta("_index");
+                Var index = GetMeta(scope, "_index");
                 if(index != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         if(index is VarList)
@@ -96,14 +119,19 @@ namespace ByondLang.Variable{
             }
 
             if(!force){
-                Var parent = GetMeta("_parent");
-                if(parent != nil){
+                Var parent = GetMeta(scope, "_parent");
+                if(!HasVariable(key) && parent != nil){
+                    State state = new State();
                     scope.callstack.Push(new DoLater(delegate{
-                        parent.Set(scope, returnTarget, returnID, key, value);
+                        if(state.returns[0]==nil)
+                            parent.Set(scope, returnTarget, returnID, key, value, false);
+                        else
+                            Set(scope, returnTarget, returnID, key, value, true);
                     }));
+                    Get(scope, state.returns, 0, key, true);
                     return;
                 }
-                Var newindex = GetMeta("_newindex");
+                Var newindex = GetMeta(scope, "_newindex");
                 if(newindex != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         if(newindex is VarList)
@@ -120,21 +148,27 @@ namespace ByondLang.Variable{
                     number_vars.Remove(((Number)key).data);
                 else
                     number_vars[((Number)key).data] = value;
-                Get(scope, returnTarget, returnID, key);
-                return;
-            }
-            if(key is String){
+            }else if(key is String){
                 if(value == nil)
                     string_vars.Remove(((String)key).data);
                 else
                     string_vars[((String)key).data] = value;
-                Get(scope, returnTarget, returnID, key);
-                return;
-            }
-            if(value == nil)
+            }else if(value == nil)
                 other_vars.Remove(key);
             else
                 other_vars[key] = value;
+
+
+            if(handler != null){
+                State handlerState = new State();
+                handler.Get(scope, handlerState.returns, 0, key, true);
+                if(handlerState.returns[0] != nil){
+                    scope.callstack.Push(new DoLater(delegate{
+                        handlerState.returns[0].Call(scope, new Dictionary<int, Var>(), 0, value);
+                    }));   
+                }
+            }
+            
             Get(scope, returnTarget, returnID, key);
             return;
         }
@@ -148,6 +182,20 @@ namespace ByondLang.Variable{
         }
 
         public virtual void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            var _call = GetMeta(scope, "_call");
+            if(_call!=nil){
+                scope.callstack.Push(new DoLater(delegate{
+                    int max_arg = 0;
+                    while(arguments.number_vars.ContainsKey(max_arg))
+                        max_arg++;
+                    for(int i = max_arg; i>0; i--){
+                        arguments.number_vars[i] = arguments.number_vars[i-1];
+                    }
+                    arguments.number_vars[0] = this;
+                    _call.Call(scope, returnTarget, returnID, arguments);
+                }));
+                return;
+            }
             returnTarget[returnID] = this;
         }
 
@@ -156,7 +204,7 @@ namespace ByondLang.Variable{
         }
 
         public virtual void ToString(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
-            Var _toString = GetMeta("_tostring");
+            Var _toString = GetMeta(scope, "_tostring");
             if(_toString!=nil){
                 if(_toString is String)
                     returnTarget[returnID] = _toString;
@@ -168,6 +216,21 @@ namespace ByondLang.Variable{
                 return;
             }
             returnTarget[returnID] = new String("nil");
+        }
+
+        public virtual void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            Var _toBool = GetMeta(scope, "_tobool");
+            if(_toBool!=nil){
+                if(_toBool is Number)
+                    returnTarget[returnID] = _toBool;
+                else
+                    scope.callstack.Push(new DoLater(delegate{
+                        _toBool.Call(scope, returnTarget, returnID, this);
+                    }));
+
+                return;
+            }
+            returnTarget[returnID] = new Number(0);
         }
 
         public static implicit operator Var(double d){
@@ -236,7 +299,7 @@ namespace ByondLang.Variable{
                     case 0:
                         return new KeyValuePair<Var, Var>(number_vars.Current.Key, number_vars.Current.Value);
                     case 1:
-                        return new KeyValuePair<Var, Var>(number_vars.Current.Key, number_vars.Current.Value);
+                        return new KeyValuePair<Var, Var>(string_vars.Current.Key, string_vars.Current.Value);
                     case 2:
                         return other_vars.Current;
                 }
@@ -252,27 +315,15 @@ namespace ByondLang.Variable{
         }
 
         public Number(){
+            type = "number";
         }
-
-        new public string type = "number";
 
         public static explicit operator double(Number var){
             return var.data;
         }
 
-        public override void ToString(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
-            Var _toString = GetMeta("_tostring");
-            if(_toString!=nil){
-                if(_toString is String)
-                    returnTarget[returnID] = _toString;
-                else
-                    scope.callstack.Push(new DoLater(delegate{
-                        _toString.Call(scope, returnTarget, returnID, this);
-                    }));
-
-                return;
-            }
-            returnTarget[returnID] = new String(data.ToString());
+        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            returnTarget[returnID] = new Number(this.data>0?1:0);
         }
     }
 
@@ -283,63 +334,114 @@ namespace ByondLang.Variable{
         }
 
         public String(){
+            type = "string";
         }
-
-        new public string type = "string";
 
         public static explicit operator string(String var){
             return var.data;
         }
 
-        public override void ToString(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
-            returnTarget[returnID] = this;
+        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            Var _toBool = GetMeta(scope, "_tobool");
+            if(_toBool!=nil){
+                if(_toBool is Number)
+                    returnTarget[returnID] = _toBool;
+                else
+                    scope.callstack.Push(new DoLater(delegate{
+                        _toBool.Call(scope, returnTarget, returnID, this);
+                    }));
+
+                return;
+            }
+            returnTarget[returnID] = new Number(data.Length>0?1:0);
         }
     }
 
     delegate void VarFunc(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments);
     class Function : Var{
-        VarFunc todo;
+        public VarFunc todo;
         public string FunctionText = "[internal function]";
         public Function(){
+            type = "function";
         }
-
-        new public string type = "function";
 
         public Function(VarFunc todo) : this(){
             this.todo = todo;
         }
 
         public override void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-            todo(scope, returnTarget, returnID, arguments);
+            if(todo!=null)
+                todo(scope, returnTarget, returnID, arguments);
         }
 
-        public override void ToString(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
-            Var _toString = GetMeta("_tostring");
-            if(_toString!=nil){
-                if(_toString is String)
-                    returnTarget[returnID] = _toString;
+        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            Var _toBool = GetMeta(scope, "_tobool");
+            if(_toBool!=nil){
+                if(_toBool is Number)
+                    returnTarget[returnID] = _toBool;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toString.Call(scope, returnTarget, returnID, this);
+                        _toBool.Call(scope, returnTarget, returnID, this);
                     }));
 
                 return;
             }
-            returnTarget[returnID] = new String(FunctionText);
+            returnTarget[returnID] = new Number(1);
+        }
+    }
+
+    class Event : Var{
+        public List<Var> callbacks;
+
+        public Event() : base(){
+            type = "event";
+            callbacks = new List<Var>();
+            string_vars["hook"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = nil;
+                if(arguments.number_vars.Count > 0){
+                    Hook(arguments.number_vars[0]);
+                    returnTarget[returnID] = arguments.number_vars[0];
+                }
+            });
+            string_vars["call"] = new Function(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                Call(scope, returnTarget, returnID, arguments);
+            });
+        }
+
+        public void Hook(Var callback){
+            for(int i=0; i < callbacks.Count; i++){
+                if(callbacks[i] == callback)
+                    return;
+            }
+            callbacks.Add(callback);
         }
     }
 
     class VarList : Var{
 
         public VarList(){
+            type = "list";
         }
-        new public string type = "list";
-
         public VarList(params Var[] vars) : this(){
             if(vars!=null)
                 for(int i=0; i < vars.Length; i++){
                     this.number_vars[i] = vars[i];
                 }
+        }
+
+        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            Var _toBool = GetMeta(scope, "_tobool");
+            if(_toBool!=nil){
+                if(_toBool is Number)
+                    returnTarget[returnID] = _toBool;
+                else
+                    scope.callstack.Push(new DoLater(delegate{
+                        _toBool.Call(scope, returnTarget, returnID, this);
+                    }));
+
+                return;
+            }
+            returnTarget[returnID] = new Number((string_vars.Count + number_vars.Count + other_vars.Count)>0?1:0);
         }
     }
 }

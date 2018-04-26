@@ -101,13 +101,12 @@ Content-Type: text/html
                                     if(req["id"]!=null)
                                         int.TryParse(req["id"], out id);
                                     if(programs.ContainsKey(id)){
-                                        response += programs[id].output;
-                                        programs[id].output = "";
+                                        response += programs[id].terminal.Stringify();
                                     }else{
                                         response += "Error: Not Found!";
                                     }
                                     break;
-                                case "destroy":
+                                case "remove":
                                     id = programs.Count;
                                     if(req["id"]!=null)
                                         int.TryParse(req["id"], out id);
@@ -117,6 +116,8 @@ Content-Type: text/html
                                     }else{
                                         response += "0";
                                     }
+                                    break;
+                                case "pause":
                                     break;
                             }
                         }

@@ -5,19 +5,17 @@ namespace ByondLang{
     class Program{
         public Scope scope;
         public Parser parser;
-        public VarList globals;
-        public string output;
+        public Terminal terminal;
 
         public Program(string CodeToExecute){
-            scope = new Scope();
+            scope = new Scope(GlobalGenerator.Generate());
             parser = new Parser();
-            globals = scope.listFromParent(GlobalGenerator.Generate());
+            terminal = new Terminal();
             scope.parser = parser;
             parser.scope = scope;
             scope.program = this;
-
-            scope.code = TokenCompiler.LocationiseTokens(TokenCompiler.MatchToken(CodeToExecute));
-            scope.callstack.Push(new CallTarget(scope.code, globals));
+            scope.code = TokenCompiler.MatchToken(CodeToExecute);
+            scope.callstack.Push(new CallTarget(scope.code, scope.globals));
         }
     }
 }

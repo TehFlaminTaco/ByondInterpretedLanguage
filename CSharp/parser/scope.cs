@@ -68,6 +68,21 @@ namespace ByondLang{
 
         public Program program;
 
+        public Dictionary<string, VarList> metas = new Dictionary<string, VarList>();
+
+        public VarList globals;
+
+
+        public Scope(VarList globals){
+            this.globals = listFromParent(globals);
+            metas["string"] = Metas.String(globals);
+            metas["number"] = Metas.Number(globals);
+            metas["list"] = Metas.List(globals);
+            metas["function"] = Metas.Function(globals);
+            metas["event"] = Metas.Event(globals);
+        }
+
+
         public void ExecuteNextEntry(){
             if(callstack.Count>0){
                 AsyncCallable toRun = callstack.Pop();
