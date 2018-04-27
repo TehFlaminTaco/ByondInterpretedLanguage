@@ -94,6 +94,7 @@ namespace ByondLang{
                 }else if(c == '\n'){
                     MoveDown();
                 }else if(c=='\t'){
+                    MoveRight();
                     while(cursor_x%4>0)
                         MoveRight();
                 }else{

@@ -1,11 +1,14 @@
 using ByondLang.Variable;
 using ByondLang.Tokenizer;
+using System.Collections.Generic;
 
 namespace ByondLang{
     class Program{
         public Scope scope;
         public Parser parser;
         public Terminal terminal;
+
+        public Queue<Signal> signals = new Queue<Signal>();
 
         public Program(string CodeToExecute, string ComputerRef){
             scope = new Scope(GlobalGenerator.Generate());

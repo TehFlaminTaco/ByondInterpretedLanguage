@@ -1,5 +1,6 @@
 using ByondLang.Variable;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System;
 namespace ByondLang{
     class Metas{
@@ -299,7 +300,58 @@ namespace ByondLang{
             list["_or"] = Or;
 
             list["_tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                
+                VarList ths = (VarList)arguments.number_vars[0];
+                string outs = "{";
+                string joiner = "";
+                int maxCounted = 0;
+                for(int i=0; ths.number_vars.ContainsKey(i); i++){
+                    Var v = ths.number_vars[i];
+                    
+                    outs += joiner;
+                    joiner = ", ";
+                    
+                    if (v is VarNumber){
+                        outs += (double)(VarNumber)v;
+                    }else if(v is VarString){
+                        outs += (string)(VarString)v;
+                    }else{
+                        outs += v.type;
+                    }
+
+                    maxCounted = i;
+                }
+                foreach(KeyValuePair<double, Var> kv in ths.number_vars){
+                    if(kv.Key%1!=0 || kv.Key < 0 || kv.Key > maxCounted){
+                        Var v = kv.Value;
+                        
+                        outs += joiner + kv.Key + "=";
+                        joiner = ", ";
+                        
+                        if (v is VarNumber){
+                            outs += (double)(VarNumber)v;
+                        }else if(v is VarString){
+                            outs += (string)(VarString)v;
+                        }else{
+                            outs += v.type;
+                        }
+                    }
+                }
+                foreach(KeyValuePair<string, Var> kv in ths.string_vars){
+                    Var v = kv.Value;
+                    
+                    outs += joiner + "\"" + Regex.Escape(kv.Key) + "\"=";
+                    joiner = ", ";
+                    
+                    if (v is VarNumber){
+                        outs += (double)(VarNumber)v;
+                    }else if(v is VarString){
+                        outs += (string)(VarString)v;
+                    }else{
+                        outs += v.type;
+                    }
+                }
+                outs += "}";
+                returnTarget[returnID] = outs;
             });
             return outp;
         }
@@ -319,9 +371,23 @@ namespace ByondLang{
                     }
                     scope.callstack.Push(toDo);
                     VarList newArgs = new VarList();
-                    for(int c=1; arguments.number_vars.ContainsKey(c); c++){
-                        newArgs.number_vars[c-1] = arguments.number_vars[c];
+                    foreach(KeyValuePair<Var,Var> kv in arguments){
+                        if(kv.Key is VarNumber){
+                            double k = (double)(VarNumber)kv.Key;
+                            if(k>=0 && k%1 == 0){
+                                if(k>0){
+                                    newArgs.number_vars[k-1] = kv.Value;
+                                }
+                            }else{
+                                newArgs.number_vars[k] = kv.Value;
+                            }
+                        }else if(kv.Key is VarString){
+                            newArgs.string_vars[(string)(VarString)kv.Key] = kv.Value;
+                        }else{
+                            newArgs.other_vars[kv.Key] = kv.Value;
+                        }
                     }
+                    
                     ths.callbacks[i].Call(scope, state.returns, 0, newArgs);
                     i++;
                 });
@@ -334,6 +400,22 @@ namespace ByondLang{
             evnt["_tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = "<Event>";
             });
+            return outp;
+        }
+
+        public static VarList Nil(VarList globals){
+            VarList outp = new VarList();
+            Dictionary<string, Var> nil = outp.string_vars;
+            nil["_eq"] = ReturnZero;
+            nil["_ne"] = ReturnOne;
+            nil["_eq[nil]"] = ReturnOne;
+            nil["_ne[nil]"] = ReturnZero;
+            nil["_not"] = ReturnOne;
+
+            nil["_and"] = And;
+            nil["_or"] = Or;
+            nil["_concat"] = GenericConcat;
+
             return outp;
         }
     }

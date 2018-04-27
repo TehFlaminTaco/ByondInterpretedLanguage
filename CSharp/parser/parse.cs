@@ -407,6 +407,7 @@ namespace ByondLang{
                             });
                             break;
                     }
+                    ((VarFunction)target.returnTarget[target.returnTargetID]).FunctionText = token.text;
                     break;
                 case "is":
                     if(token[0][0][0].name == "var"){
@@ -473,7 +474,23 @@ namespace ByondLang{
                         }
                         VarEvent evnt = (VarEvent) state.returns[0];
                         evnt.Hook(new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                            scope.callstack.Push(new CallTarget(returnTarget, returnID, token[2][0], target.variables));
+                            VarList newScopeThing = new VarList();
+                            newScopeThing.meta = new VarList();
+                            newScopeThing.meta.string_vars["_index"] = new VarFunction(delegate(Scope Nscope, Dictionary<int, Var> NreturnTarget, int NreturnID, VarList Narguments){
+                                State mState = new State();
+                                scope.callstack.Push(new DoLater(delegate{
+                                    if(mState.returns[0] == Var.nil)
+                                        NreturnTarget[NreturnID] = mState.returns[1];
+                                    else
+                                        NreturnTarget[NreturnID] = mState.returns[0];
+                                }));
+                                arguments.Get(Nscope, mState.returns, 0, Narguments.number_vars[1], false, false);
+                                target.variables.Get(Nscope, mState.returns, 1, Narguments.number_vars[1], false, false);
+                            });
+                            newScopeThing.meta.string_vars["_newindex"] = new VarFunction(delegate(Scope Nscope, Dictionary<int, Var> NreturnTarget, int NreturnID, VarList Narguments){
+                                target.variables.Set(Nscope, NreturnTarget, NreturnID, Narguments.number_vars[1], Narguments.number_vars[2], false);
+                            });
+                            scope.callstack.Push(new CallTarget(returnTarget, returnID, token[2][0], newScopeThing));
                         }));
                         target.returnTarget[target.returnTargetID] = evnt;
                         return;
@@ -724,6 +741,7 @@ namespace ByondLang{
                         return;
                     }
                     if(state == null){
+                        target.returnTarget[target.returnTargetID] = Var.nil;
                         state = target.state = new State();
                         state.returns[-1] = scope.listFromParent(target.variables);
                         state.returns[-2] = Var.nil;
@@ -875,21 +893,14 @@ namespace ByondLang{
                     }
                     for(int i=0; i < token[1].items.Count; i++){
                         if(!state.returns.ContainsKey(i*2)){
-                            if(token[1][i][0].name == "var"){
+                            if(token[1][i].data.Count == 2){
                                 scope.callstack.Push(target);
                                 state.returns[i*2] = token[1][i][0][0].text;
                                 state.returns[i*2+1] = Var.nil;
                             }else{
-                                Token expr = token[1][i][0][0][0][0];
-                                if(expr[0].name == "var"){
-                                    scope.callstack.Push(target);
-                                    state.returns[i*2] = expr[0][1].text;
-                                    parse(new CallTarget(state.returns, i*2+1, token[1][i][0][0][3][0], target.variables));
-                                }else{
-                                    scope.callstack.Push(target);
-                                    state.returns[i*2] = Var.nil;
-                                    state.returns[i*2+1] = Var.nil;
-                                }
+                                scope.callstack.Push(target);
+                                state.returns[i*2] = token[1][i][0][0].text;
+                                parse(new CallTarget(state.returns, i*2+1, token[1][i][2][0], target.variables));
                             }
                             return;
                         }

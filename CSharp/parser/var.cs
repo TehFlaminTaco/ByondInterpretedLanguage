@@ -135,18 +135,11 @@ namespace ByondLang.Variable{
             if(!force){
                 Var parent = GetMeta(scope, "_parent");
                 if(!HasVariable(key) && parent != nil){
-                    State state = new State();
-                    scope.callstack.Push(new DoLater(delegate{
-                        if(state.returns[0]==nil)
-                            parent.Set(scope, returnTarget, returnID, key, value, false);
-                        else
-                            Set(scope, returnTarget, returnID, key, value, true);
-                    }));
-                    Get(scope, state.returns, 0, key, true, false);
+                    parent.Set(scope, returnTarget, returnID, key, value, false);
                     return;
                 }
                 Var newindex = GetMeta(scope, "_newindex");
-                if(newindex != nil){
+                if(!HasVariable(key) && newindex != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         if(newindex is VarList)
                             newindex.Set(scope, returnTarget, returnID, key, value);

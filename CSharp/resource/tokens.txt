@@ -1,7 +1,7 @@
 program:program_1+
 block:'\{' program_1* '\}'
 program_1:expression ';'?
-expression:withblock | switchblock | return | tryblock | forloop | ifblock | whileblock | whenblock | function_builder | eval | ternary | call | deop | arithmatic | unaryarithmatic | assignment | crementor | is | paranexp | constant | var
+expression:withblock | switchblock | return | forloop | ifblock | whileblock | whenblock | function_builder | eval | ternary | call | deop | arithmatic | unaryarithmatic | assignment | crementor | is | paranexp | constant | var
 exporblock:block | expression
 return:'break' expression? | 'return' expression?
 constant:numberconstant | stringconstant | tableconstant
@@ -28,11 +28,8 @@ function_builder:function var? arg_list exporblock | function var exporblock | a
 function:'func' 'tion'?
 arg_list:'\(' arg_fill* splat_arg? '\)'
 splat_arg:'\.\.\.' var
-arg_fill:assignment ','? | var ','?
+arg_fill:var '=' expression ','? | var ','?
 eval:'eval' expression
-tryblock:'try' exporblock trycatch?
-trycatch:'catch' catch_name? exporblock
-catch_name:'\('? var '\)'?
 forloop:'for' var? 'in' expression exporblock | 'for' '\('? program_1{,3} '\)'? exporblock
 ifblock:'if' expression exporblock elif?
 elif:'else' exporblock

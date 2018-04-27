@@ -76,6 +76,7 @@ namespace ByondLang{
             globals.string_vars["term"] = Term();
             globals.string_vars["string"] = String();
             globals.string_vars["math"] = Math();
+            globals.string_vars["tcomm"] = TComm();
 
             globals.string_vars["tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 arguments.number_vars[0].ToString(scope, returnTarget, returnID);
@@ -86,6 +87,59 @@ namespace ByondLang{
             });
 
             return globals;
+        }
+
+        public static VarList TComm(){
+            VarList tcomm_VAR = new VarList();
+            Dictionary<string, Var> tcomm = tcomm_VAR.string_vars;
+            tcomm["onmessage"] = new VarEvent();
+            tcomm["broadcast"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                Signal newSignal = new Signal("*beep*", "1459", "Telecomms Broadcaster", "Machine", "1", "", "says");
+                if(arguments.string_vars.ContainsKey("content") && arguments.string_vars["content"] is VarString){
+                    newSignal.content = (string)(VarString)arguments.string_vars["content"];
+                }else if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString){
+                    newSignal.content = (string)(VarString)arguments.number_vars[0];
+                }
+
+                if(arguments.string_vars.ContainsKey("source") && arguments.string_vars["source"] is VarString){
+                    newSignal.source = (string)(VarString)arguments.string_vars["source"];
+                }else if(arguments.number_vars.ContainsKey(2) && arguments.number_vars[1] is VarString){
+                    newSignal.source = (string)(VarString)arguments.number_vars[1];
+                }
+
+                if(arguments.string_vars.ContainsKey("job") && arguments.string_vars["job"] is VarString){
+                    newSignal.job = (string)(VarString)arguments.string_vars["job"];
+                }else if(arguments.number_vars.ContainsKey(3) && arguments.number_vars[2] is VarString){
+                    newSignal.job = (string)(VarString)arguments.number_vars[2];
+                }
+
+                if(arguments.string_vars.ContainsKey("freq") && arguments.string_vars["freq"] is VarString){
+                    newSignal.freq = (string)(VarString)arguments.string_vars["freq"];
+                }else if(arguments.number_vars.ContainsKey(3) && arguments.number_vars[3] is VarString){
+                    newSignal.freq = (string)(VarString)arguments.number_vars[3];
+                }
+
+                if(arguments.string_vars.ContainsKey("pass") && arguments.string_vars["pass"] is VarString){
+                    newSignal.pass = (string)(VarString)arguments.string_vars["pass"];
+                }else if(arguments.number_vars.ContainsKey(4) && arguments.number_vars[4] is VarString){
+                    newSignal.pass = (string)(VarString)arguments.number_vars[4];
+                }
+
+                if(arguments.string_vars.ContainsKey("ref") && arguments.string_vars["ref"] is VarString){
+                    newSignal.reference = (string)(VarString)arguments.string_vars["ref"];
+                }else if(arguments.number_vars.ContainsKey(5) && arguments.number_vars[5] is VarString){
+                    newSignal.reference = (string)(VarString)arguments.number_vars[5];
+                }
+
+                if(arguments.string_vars.ContainsKey("verb") && arguments.string_vars["verb"] is VarString){
+                    newSignal.verb = (string)(VarString)arguments.string_vars["verb"];
+                }else if(arguments.number_vars.ContainsKey(5) && arguments.number_vars[6] is VarString){
+                    newSignal.verb = (string)(VarString)arguments.number_vars[6];
+                }
+
+                scope.program.signals.Enqueue(newSignal);
+            });
+            return tcomm_VAR;
         }
 
         public static VarList Math(){
@@ -158,6 +212,31 @@ namespace ByondLang{
             math["clamp"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = System.Math.Clamp((double)(VarNumber)arguments.number_vars[0], (double)(VarNumber)arguments.number_vars[1], (double)(VarNumber)arguments.number_vars[2]);
             });
+            System.Random rng = new System.Random();
+            math["random"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                double v = rng.NextDouble();
+                if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarNumber){
+                    double a = (double)(VarNumber)arguments.number_vars[0];
+                    if(arguments.number_vars.ContainsKey(1) && arguments.number_vars[1] is VarNumber){
+                        double b = (double)(VarNumber)arguments.number_vars[1];
+                        returnTarget[returnID] = System.Math.Round(a + v * (b-a));
+                    }else{
+                        returnTarget[returnID] = System.Math.Round(v * a);
+                    }
+                }else{
+                    returnTarget[returnID] = v;
+                }
+            });
+            math["abs"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Abs((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["deg"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = (double)(VarNumber)arguments.number_vars[0]/System.Math.PI*180;
+            });
+            math["rad"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = (double)(VarNumber)arguments.number_vars[0]/180*System.Math.PI;
+            });
+            math["pi"] = System.Math.PI;
             
             return math_VAR;
         }

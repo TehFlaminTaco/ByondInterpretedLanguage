@@ -80,6 +80,7 @@ namespace ByondLang{
             metas["list"] = Metas.List(globals);
             metas["function"] = Metas.Function(globals);
             metas["event"] = Metas.Event(globals);
+            metas["nil"] = Metas.Nil(globals);
         }
 
 
