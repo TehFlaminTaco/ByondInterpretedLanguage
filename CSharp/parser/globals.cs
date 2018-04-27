@@ -292,6 +292,23 @@ namespace ByondLang{
                 }
             });            
 
+            str["upper"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString){
+                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).ToUpper();
+                }
+            });
+            str["lower"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString){
+                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).ToLower();
+                }
+            });
+            str["reverse"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString){
+                    char[] arr =  ((string)(VarString)arguments.number_vars[0]).ToCharArray();
+                    System.Array.Reverse(arr);
+                    returnTarget[returnID] = new string(arr);
+                }
+            });
 
             return string_VAR;
         }
