@@ -101,7 +101,7 @@ namespace ByondLang{
                             parse(new CallTarget(state.returns, 0, token.data[0].items[0], target.variables));
                         }else{
                             Var varData = state.returns[0];
-                            varData.string_vars["target"].Get(scope, target.returnTarget, target.returnTargetID, varData.string_vars["index"], ((VarNumber)varData.string_vars["islocal"]).data==1);
+                            varData.string_vars["target"].Get(scope, target.returnTarget, target.returnTargetID, varData.string_vars["index"], ((VarNumber)varData.string_vars["islocal"]).data==1, ((VarNumber)varData.string_vars["iscurry"]).data==1);
                         }
                     }else{
                         parse(new CallTarget(target.returnTarget, target.returnTargetID, token[0][0], target.variables));
@@ -145,13 +145,13 @@ namespace ByondLang{
                         value = state.returns[1];
                     }else{
                         scope.callstack.Push(target); // Re-add this to the callstack, we still need more information.
-                        parse(new CallTarget(state.returns, 1, token.data[3].items[0], target.variables));
+                        parse(new CallTarget(state.returns, 1, token[3][0], target.variables));
                         break;
                     }
                     if(token[1].items.Count > 0){
                         if(!state.returns.ContainsKey(2)){
                             scope.callstack.Push(target);
-                            modifyTarget.string_vars["target"].Get(scope, state.returns, 2, modifyTarget.string_vars["index"], ((VarNumber)modifyTarget.string_vars["islocal"]).data==1);
+                            modifyTarget.string_vars["target"].Get(scope, state.returns, 2, modifyTarget.string_vars["index"], ((VarNumber)modifyTarget.string_vars["islocal"]).data==1, false);
                         }else if(!state.returns.ContainsKey(3)){
                             scope.callstack.Push(target);
                             Math(state.returns, 3, state.returns[2], value, token[1][0][0].name);
@@ -168,6 +168,7 @@ namespace ByondLang{
                         vardata.string_vars["target"] = target.variables;
                         vardata.string_vars["index"] = token.data[1].items[0].text;
                         vardata.string_vars["islocal"] = token.data[0].items.Count;
+                        vardata.string_vars["iscurry"] = 0;
                         ReturnValue(target, vardata);
                     }else{
                         if(state == null){
@@ -200,18 +201,15 @@ namespace ByondLang{
                         vardata.string_vars["target"] = table_target;
                         vardata.string_vars["index"] = index;
                         vardata.string_vars["islocal"] = 0;
+                        vardata.string_vars["iscurry"] = token[1][0][0].name == "::" ? 1 : 0;
                         ReturnValue(target, vardata);
                     }
                     break;
                 case "index":
-                    if(token[0].name == "\\["){
+                    if(token[0].name == "\\[")
                         parse(new CallTarget(target.returnTarget, target.returnTargetID, token[1][0], target.variables));
-                    }else if(token[0].name == "\\."){
+                    else
                         ReturnValue(target, token[1][0].text);
-                    }else{
-
-                        throw new Exception("Currying not yet implemented, but neither are functions so who gives a fuck."); // TODO: Implement currying.
-                    }
                     break;
                 case "ternary":
                     if(state == null){
@@ -304,8 +302,10 @@ namespace ByondLang{
                             hasAll = false;
                             scope.callstack.Push(target);
                             Token this_fill = fills[i];
-                            if(this_fill[0].name != "constant"){
+                            if(this_fill[0].name == "expression"){
                                 parse(new CallTarget(state.returns, i*2, this_fill[0][0], target.variables)); // This is just an expression. Eg. {1, 2, 3}
+                            }else if(this_fill[0].name == "var"){
+                                parse(new CallTarget(state.returns, i*2, this_fill[2][0], target.variables));
                             }else{
                                 parse(new CallTarget(state.returns, i*2, this_fill[2][0], target.variables));
                                 parse(new CallTarget(state.returns, i*2+1, this_fill[0][0], target.variables));
@@ -432,7 +432,7 @@ namespace ByondLang{
                             if(state.returns[0].string_vars["target"].handler == null){
                                 state.returns[0].string_vars["target"].handler = new VarList();
                             }
-                            state.returns[0].string_vars["target"].handler.Get(scope, state.returns, 3, state.returns[0].string_vars["index"], true);
+                            state.returns[0].string_vars["target"].handler.Get(scope, state.returns, 3, state.returns[0].string_vars["index"], true, false);
                             if(state.returns[3] == Var.nil){
                                 state.returns[0].string_vars["target"].handler.Set(scope, state.returns, 3, state.returns[0].string_vars["index"], new VarEvent(), true);
                             }
@@ -497,8 +497,8 @@ namespace ByondLang{
                                 else
                                     returnTarget[returnID] = mState.returns[0];
                             }));
-                            state.returns[0].Get(scope, mState.returns, 0, arguments.number_vars[1], false);
-                            target.variables.Get(scope, mState.returns, 1, arguments.number_vars[1], false);
+                            state.returns[0].Get(scope, mState.returns, 0, arguments.number_vars[1], false, false);
+                            target.variables.Get(scope, mState.returns, 1, arguments.number_vars[1], false, false);
                         });
                         newScopeThing.meta.string_vars["_newindex"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                             state.returns[0].Set(scope, returnTarget, returnID, arguments.number_vars[1], arguments.number_vars[2], false);
@@ -649,7 +649,7 @@ namespace ByondLang{
                             scope.callstack.Push(new CallTarget(state.returns, 0, token[0][0][0][0], target.variables));
                         }else if(!state.returns.ContainsKey(1)){
                             scope.callstack.Push(target);
-                            state.returns[0].string_vars["target"].Get(scope, state.returns, 1, state.returns[0].string_vars["index"], ((VarNumber)state.returns[0].string_vars["islocal"]).data==1);
+                            state.returns[0].string_vars["target"].Get(scope, state.returns, 1, state.returns[0].string_vars["index"], ((VarNumber)state.returns[0].string_vars["islocal"]).data==1, false);
                         }else if(!state.returns.ContainsKey(2)){
                             scope.callstack.Push(target);
                             target.returnTarget[target.returnTargetID] = state.returns[1];
@@ -668,7 +668,7 @@ namespace ByondLang{
                             scope.callstack.Push(new CallTarget(state.returns, 0, token[1][0][0][0], target.variables));
                         }else if(!state.returns.ContainsKey(1)){
                             scope.callstack.Push(target);
-                            state.returns[0].string_vars["target"].Get(scope, state.returns, 1, state.returns[0].string_vars["index"], ((VarNumber)state.returns[0].string_vars["islocal"]).data==1);
+                            state.returns[0].string_vars["target"].Get(scope, state.returns, 1, state.returns[0].string_vars["index"], ((VarNumber)state.returns[0].string_vars["islocal"]).data==1, false);
                         }else if(!state.returns.ContainsKey(2)){
                             scope.callstack.Push(target);
                             Math(state.returns, 2, state.returns[1], 1, token[0][0].text == "++" ? "add" : "sub");
@@ -791,6 +791,28 @@ namespace ByondLang{
                                     i++;
                                 });
                                 scope.callstack.Push(toDo);
+                            }else if(to_iterate is VarFunction){
+                                State sub_state = new State();
+                                DoLater toDo = null;
+                                target.returnTarget[target.returnTargetID] = Var.nil;
+                                toDo = new DoLater(delegate{
+                                    if(sub_state.returns.ContainsKey(0)){
+                                        if(sub_state.returns[0] != Var.nil){
+                                            scope.callstack.Push(toDo);
+                                            scope.callstack.Push(new CallTarget(target.returnTarget, target.returnTargetID, token[4][0], (VarList)state.returns[-1]));
+                                            if(token[1].items.Count > 0){
+                                                VarList vardata = (VarList)state.returns[8];
+                                                vardata.string_vars["target"].Set(scope, state.returns, 90, vardata.string_vars["index"], sub_state.returns[0], ((VarNumber)vardata.string_vars["islocal"]).data==1);
+                                            }
+                                        }
+                                        sub_state.returns.Remove(0);
+                                    }else{
+                                        scope.callstack.Push(toDo);
+                                        to_iterate.Call(scope, sub_state.returns, 0);
+                                    }
+                                });
+                                scope.callstack.Push(toDo);
+                            
                             }else{
                                 VarEnumerator enm = to_iterate.GetEnumerator();
                                 DoLater toDo = null;
@@ -989,6 +1011,7 @@ namespace ByondLang{
                         }));
                         parse(new CallTarget(state.returns, -2, token[1][0], target.variables));
                     }
+                    outp.FunctionText = token.text;
                     target.returnTarget[target.returnTargetID] = outp;
                     break;
                 case "call":
@@ -1023,7 +1046,7 @@ namespace ByondLang{
                             }else{
                                 toCall.Call(scope, target.returnTarget, target.returnTargetID, state.returns[1]);
                             }
-                            break;
+                            return;
                         case "\\(":
                             TokenItem args = token[2];
                             for(int i=0; i < args.items.Count; i++){

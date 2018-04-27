@@ -1,5 +1,6 @@
 using ByondLang.Variable;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ByondLang{
     class GlobalGenerator{
@@ -74,8 +75,91 @@ namespace ByondLang{
             globals.string_vars["table"] = Table();
             globals.string_vars["term"] = Term();
             globals.string_vars["string"] = String();
+            globals.string_vars["math"] = Math();
+
+            globals.string_vars["tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                arguments.number_vars[0].ToString(scope, returnTarget, returnID);
+            });
+
+            globals.string_vars["tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                arguments.number_vars[0].ToNumber(scope, returnTarget, returnID);
+            });
 
             return globals;
+        }
+
+        public static VarList Math(){
+            VarList math_VAR = new VarList();
+            Dictionary<string, Var> math = math_VAR.string_vars;
+            math["sin"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Sin((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["cos"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Cos((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["tan"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Tan((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["asin"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Asin((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["acos"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Acos((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["atan"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(1))
+                    returnTarget[returnID] = System.Math.Atan2((double)(VarNumber)arguments.number_vars[0],(double)(VarNumber)arguments.number_vars[1]);
+                else
+                    returnTarget[returnID] = System.Math.Atan((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["floor"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(1)){
+                    double e = System.Math.Pow(10,(double)(VarNumber)arguments.number_vars[1]);
+                    returnTarget[returnID] = System.Math.Floor(((double)(VarNumber)arguments.number_vars[0])*e)/e;
+                }else
+                    returnTarget[returnID] = System.Math.Floor((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["ceil"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(1)){
+                    double e = System.Math.Pow(10,(double)(VarNumber)arguments.number_vars[1]);
+                    returnTarget[returnID] = System.Math.Ceiling(((double)(VarNumber)arguments.number_vars[0])*e)/e;
+                }else
+                    returnTarget[returnID] = System.Math.Ceiling((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["round"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(1)){
+                    double e = System.Math.Pow(10,(double)(VarNumber)arguments.number_vars[1]);
+                    returnTarget[returnID] = System.Math.Round(((double)(VarNumber)arguments.number_vars[0])*e)/e;
+                }else
+                    returnTarget[returnID] = System.Math.Round((double)(VarNumber)arguments.number_vars[0]);
+            });
+            math["max"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                State state = new State();
+                scope.callstack.Push(new DoLater(delegate{
+                    if(state.returns[0] is VarNumber && 0==(double)(VarNumber)state.returns[0]){
+                        returnTarget[returnID] = arguments.number_vars[0];
+                    }else{
+                        returnTarget[returnID] = arguments.number_vars[1];
+                    }
+                }));
+                scope.parser.Math(state.returns, 0, arguments.number_vars[0], arguments.number_vars[1], "lt");
+            });
+            math["min"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                State state = new State();
+                scope.callstack.Push(new DoLater(delegate{
+                    if(state.returns[0] is VarNumber && 0!=(double)(VarNumber)state.returns[0]){
+                        returnTarget[returnID] = arguments.number_vars[0];
+                    }else{
+                        returnTarget[returnID] = arguments.number_vars[1];
+                    }
+                }));
+                scope.parser.Math(state.returns, 0, arguments.number_vars[0], arguments.number_vars[1], "lt");
+            });
+            math["clamp"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = System.Math.Clamp((double)(VarNumber)arguments.number_vars[0], (double)(VarNumber)arguments.number_vars[1], (double)(VarNumber)arguments.number_vars[2]);
+            });
+            
+            return math_VAR;
         }
 
         public static VarList Table(){
@@ -94,7 +178,34 @@ namespace ByondLang{
         public static VarList String(){
             VarList string_VAR = new VarList();
             Dictionary<string, Var> str = string_VAR.string_vars;
+            str["sub"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(2))
+                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).Substring((int)(VarNumber)arguments.number_vars[1], (int)(VarNumber)arguments.number_vars[2]);
+                else
+                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).Substring((int)(VarNumber)arguments.number_vars[1], (int)(VarNumber)arguments.number_vars[2]);
+            });
 
+            str["match"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString && arguments.number_vars.ContainsKey(1) && arguments.number_vars[1] is VarString){
+                    string haystack = (string)(VarString)arguments.number_vars[0];
+                    string needle = (string)(VarString)arguments.number_vars[1];
+                    Regex matcher = new Regex(needle, RegexOptions.None, new System.TimeSpan(0, 0, 1));
+                    try{
+                        Match m = matcher.Match(haystack);
+                        if(m.Success){
+                            if(m.Groups.Count == 1){
+                                returnTarget[returnID] = m.Groups[0].Value;
+                            }else{
+                                VarList outList = new VarList();
+                                for(int i=0; i < m.Groups.Count; i++){
+                                    outList.string_vars[m.Groups[i].Name] = outList.number_vars[i] = m.Groups[i].Value;
+                                }
+                                returnTarget[returnID] = outList;
+                            }
+                        }
+                    }catch{}
+                }
+            });
 
 
             return string_VAR;

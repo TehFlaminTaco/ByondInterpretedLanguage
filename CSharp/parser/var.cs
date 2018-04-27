@@ -59,7 +59,21 @@ namespace ByondLang.Variable{
             return other_vars.ContainsKey(key);
         }
 
-        public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, bool force){
+        public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, bool force, bool curry){
+            if(curry){
+                scope.callstack.Push(new DoLater(delegate{
+                    Var val = returnTarget[returnID];
+                    returnTarget[returnID] = new VarFunction(delegate(Scope sub_scope, Dictionary<int, Var> sub_returnTarget, int sub_returnID, VarList arguments){
+                        int max_arg = 0;
+                        while(arguments.number_vars.ContainsKey(max_arg))
+                            max_arg++;
+                        for(int i=max_arg; i>0; i--)
+                            arguments.number_vars[i] = arguments.number_vars[i-1];
+                        arguments.number_vars[0] = this;
+                        val.Call(scope, sub_returnTarget, sub_returnID, arguments);
+                    });
+                }));
+            }
             if(this == nil){
                 returnTarget[returnID] = nil;
                 return;
@@ -128,7 +142,7 @@ namespace ByondLang.Variable{
                         else
                             Set(scope, returnTarget, returnID, key, value, true);
                     }));
-                    Get(scope, state.returns, 0, key, true);
+                    Get(scope, state.returns, 0, key, true, false);
                     return;
                 }
                 Var newindex = GetMeta(scope, "_newindex");
@@ -161,7 +175,7 @@ namespace ByondLang.Variable{
 
             if(handler != null){
                 State handlerState = new State();
-                handler.Get(scope, handlerState.returns, 0, key, true);
+                handler.Get(scope, handlerState.returns, 0, key, true, false);
                 if(handlerState.returns[0] != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         handlerState.returns[0].Call(scope, new Dictionary<int, Var>(), 0, value);
@@ -174,7 +188,7 @@ namespace ByondLang.Variable{
         }
 
         public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key){
-            Get(scope, returnTarget, returnID, key, false);
+            Get(scope, returnTarget, returnID, key, false, false);
         }
 
         public void Set(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, Var value){
@@ -226,6 +240,21 @@ namespace ByondLang.Variable{
                 else
                     scope.callstack.Push(new DoLater(delegate{
                         _toBool.Call(scope, returnTarget, returnID, this);
+                    }));
+
+                return;
+            }
+            returnTarget[returnID] = new VarNumber(0);
+        }
+
+        public virtual void ToNumber(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+            Var _tonumber = GetMeta(scope, "_tonumber");
+            if(_tonumber!=nil){
+                if(_tonumber is VarNumber)
+                    returnTarget[returnID] = _tonumber;
+                else
+                    scope.callstack.Push(new DoLater(delegate{
+                        _tonumber.Call(scope, returnTarget, returnID, this);
                     }));
 
                 return;
@@ -370,6 +399,7 @@ namespace ByondLang.Variable{
         }
 
         public override void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            returnTarget[returnID] = Var.nil;
             if(todo!=null)
                 todo(scope, returnTarget, returnID, arguments);
             else

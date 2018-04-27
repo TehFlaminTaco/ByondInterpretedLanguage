@@ -180,6 +180,10 @@ namespace ByondLang{
             number["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = new VarString(""+(double)(VarNumber) arguments.number_vars[0]);
             });
+
+            number["_tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                returnTarget[returnID] = arguments.number_vars[0];
+            });
             return outp;
         }
 
@@ -212,6 +216,11 @@ namespace ByondLang{
 
             str["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 returnTarget[returnID] = arguments.number_vars[0];
+            });
+            str["_tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                double d = 0.0d;
+                Double.TryParse((string)(VarString)arguments.number_vars[0], out d);
+                returnTarget[returnID] = d;
             });
             return outp;
         }
@@ -273,7 +282,7 @@ namespace ByondLang{
             list["_eq"] = ReturnZero;
             list["_ne"] = ReturnOne;
             list["_index"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                globals.string_vars["table"].Get(scope, returnTarget, returnID, arguments.number_vars[1], true);
+                globals.string_vars["table"].Get(scope, returnTarget, returnID, arguments.number_vars[1], true, false);
             });
 
             list["_len"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
@@ -283,6 +292,8 @@ namespace ByondLang{
                     i++;
                 returnTarget[returnID] = i;
             });
+
+            list["_tonumber"] = list["_len"];
 
             list["_and"] = And;
             list["_or"] = Or;
