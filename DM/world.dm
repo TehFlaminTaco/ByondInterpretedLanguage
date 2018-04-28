@@ -3,12 +3,14 @@
 	mob = /mob
 
 	New()
-		world.Export("http://127.0.0.1:1945/action=clear");
+		//world.Export("http://127.0.0.1:1945/action=clear");
+		world.log << call("ntsl/net461/ByondLang.dll", "interact")("action=clear")
 
 /mob
 	step_size = 32;
 	var/program = "";
 	verb/new_program(var/code as text)
+
 		var/http[] = world.Export("http://127.0.0.1:1945/action=new_program&code=[url_encode(code)]");
 
 		if(!http)

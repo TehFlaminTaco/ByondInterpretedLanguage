@@ -210,7 +210,7 @@ namespace ByondLang{
                 scope.parser.Math(state.returns, 0, arguments.number_vars[0], arguments.number_vars[1], "lt");
             });
             math["clamp"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = System.Math.Clamp((double)(VarNumber)arguments.number_vars[0], (double)(VarNumber)arguments.number_vars[1], (double)(VarNumber)arguments.number_vars[2]);
+                returnTarget[returnID] = System.Math.Min(System.Math.Max((double)(VarNumber)arguments.number_vars[0], (double)(VarNumber)arguments.number_vars[1]), (double)(VarNumber)arguments.number_vars[2]);
             });
             System.Random rng = new System.Random();
             math["random"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
@@ -277,7 +277,7 @@ namespace ByondLang{
                             }else{
                                 VarList outList = new VarList();
                                 for(int i=0; i < m.Groups.Count; i++){
-                                    outList.string_vars[m.Groups[i].Name] = outList.number_vars[i] = m.Groups[i].Value;
+                                    outList.number_vars[i] = m.Groups[i].Value;
                                 }
                                 returnTarget[returnID] = outList;
                             }
@@ -302,7 +302,7 @@ namespace ByondLang{
                                 }else{
                                     VarList outList = new VarList();
                                     for(int c=0; c < m.Groups.Count; c++){
-                                        outList.string_vars[m.Groups[c].Name] = outList.number_vars[c] = m.Groups[c].Value;
+                                        outList.number_vars[c] = m.Groups[c].Value;
                                     }
                                     nreturnTarget[nreturnID] = outList;
                                 }
@@ -350,7 +350,7 @@ namespace ByondLang{
                                 }else{
                                     VarList outList = new VarList();
                                     for(int c=0; c < m.Groups.Count; c++){
-                                        outList.string_vars[m.Groups[c].Name] = outList.number_vars[c] = m.Groups[c].Value;
+                                        outList.number_vars[c] = m.Groups[c].Value;
                                     }
                                     replace_func.Call(scope, s_state.returns, 0, outList);
                                 }

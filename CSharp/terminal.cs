@@ -1,5 +1,5 @@
 using System;
-using System.Web;
+using ByondLang.Override;
 
 namespace ByondLang{
     class Terminal{
@@ -170,9 +170,9 @@ namespace ByondLang{
         }
 
         public void Validate(){
-            r = Math.Clamp(r, 0.0f, 1.0f);
-            g = Math.Clamp(g, 0.0f, 1.0f);
-            b = Math.Clamp(b, 0.0f, 1.0f);
+            r = Math.Max(Math.Min(r, 0.0f), 1.0f);
+            g = Math.Max(Math.Min(g, 0.0f), 1.0f);
+            b = Math.Max(Math.Min(b, 0.0f), 1.0f);
         }
 
         public Color Copy(){
