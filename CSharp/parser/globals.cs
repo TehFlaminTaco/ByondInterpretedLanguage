@@ -77,6 +77,7 @@ namespace ByondLang{
             globals.string_vars["string"] = String();
             globals.string_vars["math"] = Math();
             globals.string_vars["tcomm"] = TComm();
+            globals.string_vars["net"] = Net();
 
             globals.string_vars["tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 arguments.number_vars[0].ToString(scope, returnTarget, returnID);
@@ -94,7 +95,7 @@ namespace ByondLang{
             Dictionary<string, Var> tcomm = tcomm_VAR.string_vars;
             tcomm["onmessage"] = new VarEvent();
             tcomm["broadcast"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Signal newSignal = new Signal("*beep*", "1459", "Telecomms Broadcaster", "Machine", "1", "", "says");
+                Signal newSignal = new Signal("*beep*", "1459", "Telecomms Broadcaster", "Machine", "1", "says");
                 if(arguments.string_vars.ContainsKey("content") && arguments.string_vars["content"] is VarString){
                     newSignal.content = (string)(VarString)arguments.string_vars["content"];
                 }else if(arguments.number_vars.ContainsKey(0) && arguments.number_vars[0] is VarString){
@@ -133,9 +134,17 @@ namespace ByondLang{
 
                 if(arguments.string_vars.ContainsKey("verb") && arguments.string_vars["verb"] is VarString){
                     newSignal.verb = (string)(VarString)arguments.string_vars["verb"];
-                }else if(arguments.number_vars.ContainsKey(5) && arguments.number_vars[6] is VarString){
+                }else if(arguments.number_vars.ContainsKey(6) && arguments.number_vars[6] is VarString){
                     newSignal.verb = (string)(VarString)arguments.number_vars[6];
                 }
+
+                if(arguments.string_vars.ContainsKey("language") && arguments.string_vars["language"] is VarString){
+                    newSignal.language = (string)(VarString)arguments.string_vars["verb"];
+                }else if(arguments.number_vars.ContainsKey(7) && arguments.number_vars[7] is VarString){
+                    newSignal.language = (string)(VarString)arguments.number_vars[7];
+                }
+
+
 
                 scope.program.signals.Enqueue(newSignal);
             });
@@ -261,7 +270,7 @@ namespace ByondLang{
                 if(arguments.number_vars.ContainsKey(2))
                     returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).Substring((int)(VarNumber)arguments.number_vars[1], (int)(VarNumber)arguments.number_vars[2]);
                 else
-                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).Substring((int)(VarNumber)arguments.number_vars[1], (int)(VarNumber)arguments.number_vars[2]);
+                    returnTarget[returnID] = ((string)(VarString)arguments.number_vars[0]).Substring((int)(VarNumber)arguments.number_vars[1]);
             });
 
             str["match"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
@@ -488,6 +497,41 @@ namespace ByondLang{
             });
 
             return term_VAR;
+        }
+
+        public static VarList Net(){
+            VarList net_VAR = new VarList();
+            Dictionary<string, Var> net = net_VAR.string_vars;
+
+            net["test"] = new VarString("Blah");
+            net["connections"] = new VarList();
+
+            net["subscribe"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                string hook = (string)(VarString)arguments.number_vars[0];
+                VarEvent toHook;
+                if(net["connections"].string_vars.ContainsKey(hook)){
+                    toHook = (VarEvent)net["connections"].string_vars[hook];
+                }else{
+                    net["connections"].string_vars[hook] = toHook = new VarEvent();
+                }
+                returnTarget[returnID] = toHook;
+            });
+
+            net["message"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                string hook = (string)(VarString)arguments.number_vars[0];
+                foreach(KeyValuePair<int, Program> kv in Listener.programs){
+                    var their_net = kv.Value.scope.globals.meta.string_vars["_parent"].string_vars["net"].string_vars;
+                    if(their_net["connections"].string_vars.ContainsKey(hook)){
+                        Variable.VarList args = new Variable.VarList();
+                        args.number_vars[0] = arguments.number_vars[1];
+                        args.string_vars["message"] = arguments.number_vars[1];
+                        their_net["connections"].string_vars[hook].Call(kv.Value.scope, new Dictionary<int, Variable.Var>(), 0, args);
+                    }
+                }
+                returnTarget[returnID] = arguments.number_vars[1];
+            });
+
+            return net_VAR;
         }
     }
 }

@@ -37,6 +37,25 @@ namespace ByondLang{
             parse(target.target, target, target.state);
         }
 
+        public Var ntnet_sanitize(Var value){
+            if(!(value is VarList || value is VarString || value is VarNumber))
+                return Var.nil;
+            if(value is VarList){
+                VarList newList = new VarList();
+                foreach(KeyValuePair<string, Var> kv in value.string_vars)
+                    newList.string_vars[kv.Key] = ntnet_sanitize(kv.Value);
+                foreach(KeyValuePair<double, Var> kv in value.number_vars)
+                    newList.number_vars[kv.Key] = ntnet_sanitize(kv.Value);
+                foreach(KeyValuePair<Var, Var> kv in value.other_vars){
+                    Var key = ntnet_sanitize(kv.Key);
+                    if(key != Var.nil)
+                        newList.other_vars[kv.Key] = ntnet_sanitize(kv.Value);
+                }
+                return newList;
+            }
+            return value;
+        }
+
         public void Math(Dictionary<int, Var> returnTarget, int returnID, Var left, Var right, string op){
             string[] left_names = {"_"+op+"[0:"+right.type+"]", "_"+op+"["+right.type+"]", "_"+op+"[0]", "_"+op};
             string[] right_names = {"_"+op+"[1:"+left.type+"]", "_"+op+"["+left.type+"]", "_"+op+"[1]", "_"+op};

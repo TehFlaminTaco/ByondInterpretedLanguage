@@ -30,7 +30,7 @@ namespace ByondLang{
     
     class Listener{
         TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 1945);
-        Dictionary<int, Program> programs = new Dictionary<int, Program>();
+        public static Dictionary<int, Program> programs = new Dictionary<int, Program>();
 
         public int NextFreeProgram(){
             int i=0;
@@ -57,7 +57,7 @@ namespace ByondLang{
                 NetworkStream stream = client.GetStream();
 
                 string response = @"HTTP/1.0 200 OK
-Server: ByondLangServer 1.0
+Server: NTSL2Daemon 1.0
 Content-Type: text/html
 
 ";
@@ -73,11 +73,12 @@ Content-Type: text/html
                             switch(req["action"]){
                                 case "clear":
                                     programs.Clear();
+                                    response += "1";
                                     break;
                                 case "new_program":
                                     int programID;
                                     response += programID = NextFreeProgram();
-                                    programs[programID]=new Program(req["code"]==null?"":req["code"],req["ref"]==null?"":req["ref"]);
+                                    try{programs[programID]=new Program(req["code"]==null?"":req["code"],req["ref"]==null?"":req["ref"]);}catch(Exception){}
                                     break;
                                 case "execute":
                                     int id = programs.Count;

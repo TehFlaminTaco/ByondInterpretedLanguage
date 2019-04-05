@@ -16,7 +16,9 @@ namespace ByondLang{
         public string reference;
         [DataMember]
         public string verb;
-        public Signal(string content, string freq, string source, string job, string pass, string reference, string verb){
+        [DataMember]
+        public string language;
+        public Signal(string content, string freq, string source, string job, string pass, string reference, string verb, string language = "Ceti Basic"){
             this.content = content;
             this.freq = freq;
             this.source = source;
@@ -24,8 +26,9 @@ namespace ByondLang{
             this.pass = pass;
             this.reference = reference;
             this.verb = verb;
+            this.language = language;
         }
-        public Signal(string content, string freq, string source, string job, string pass, string verb){
+        public Signal(string content, string freq, string source, string job, string pass, string verb, string language = "Ceti Basic"){
             this.content = content;
             this.freq = freq;
             this.source = source;
@@ -33,6 +36,7 @@ namespace ByondLang{
             this.pass = pass;
             this.reference = "";
             this.verb = verb;
+            this.language = language;
         }
     }
 }
