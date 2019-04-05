@@ -502,8 +502,6 @@ namespace ByondLang{
         public static VarList Net(){
             VarList net_VAR = new VarList();
             Dictionary<string, Var> net = net_VAR.string_vars;
-
-            net["test"] = new VarString("Blah");
             net["connections"] = new VarList();
 
             net["subscribe"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
