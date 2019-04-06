@@ -528,7 +528,7 @@ namespace ByondLang{
                         their_net["connections"].string_vars[hook].Call(kv.Value.scope, new Dictionary<int, Variable.Var>(), 0, args);
                     }
                 }
-                returnTarget[returnID] = arguments.number_vars[1];
+                returnTarget[returnID] = arguments.number_vars.ContainsKey(1) ? arguments.number_vars[1] : Var.nil;
             });
 
             return net_VAR;
