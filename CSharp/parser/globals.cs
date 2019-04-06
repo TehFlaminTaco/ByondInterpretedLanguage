@@ -521,8 +521,10 @@ namespace ByondLang{
                     var their_net = kv.Value.scope.globals.meta.string_vars["_parent"].string_vars["net"].string_vars;
                     if(their_net["connections"].string_vars.ContainsKey(hook)){
                         Variable.VarList args = new Variable.VarList();
-                        args.number_vars[0] = arguments.number_vars[1];
-                        args.string_vars["message"] = arguments.number_vars[1];
+                        if(arguments.number_vars.ContainsKey(1)){
+                            args.number_vars[0] = arguments.number_vars[1];
+                            args.string_vars["message"] = arguments.number_vars[1];
+                        }
                         their_net["connections"].string_vars[hook].Call(kv.Value.scope, new Dictionary<int, Variable.Var>(), 0, args);
                     }
                 }
