@@ -29,7 +29,7 @@ namespace ByondLang{
     }
     
     class Listener{
-        TcpListener server = new TcpListener(IPAddress.Parse("127.0.0.1"), 1945);
+        TcpListener server;
         public static Dictionary<int, Program> programs = new Dictionary<int, Program>();
 
         public int NextFreeProgram(){
@@ -39,8 +39,11 @@ namespace ByondLang{
             return i;
         }
 
-        public Listener(){
+        public Listener(int port){
+            server = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+
             server.Start();
+            Console.WriteLine("Running successfully on port {0}", port);
 
             Regex getRequest = new Regex("GET\\s+(.*?)\\s+");
 

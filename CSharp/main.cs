@@ -10,7 +10,12 @@ namespace ByondLang.CSharp
             TokenCompiler.GetTokens();
             TokenCompiler.CompileTokens();
 
-            new Listener();
+            int port = 1945;
+
+            if(args.Length > 0)
+                Int32.TryParse(args[0], out port);
+
+            new Listener(port);
         }
     }
 }
