@@ -6,7 +6,9 @@ using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
 using System.IO;
 using System.Web;
+using System.Linq;
 using System;
+using HtmlAgilityPack;
 
 namespace ByondLang{
 
@@ -41,7 +43,6 @@ namespace ByondLang{
 
         public Listener(int port){
             server = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
-
             server.Start();
             Console.WriteLine("Running successfully on port {0}", port);
 
@@ -157,6 +158,7 @@ Content-Type: text/html
                                         Program prg = programs[id];
                                         if(prg.signals.Count > 0){
                                             Signal sig = prg.signals.Dequeue();
+                                            sig.content = sanitize_message(sig.content);
                                             DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(Signal));
                                             MemoryStream strm = new MemoryStream();
                                             ser.WriteObject(strm, sig);
@@ -198,6 +200,33 @@ Content-Type: text/html
                 Console.WriteLine("And finished!");
 
             }
+        }
+
+        private string sanitize_message(string content){
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(content);
+            return sanitize_message_node(doc.DocumentNode);
+        }
+
+        private static string[] safetags = {"b","u","s","i"};
+        private string sanitize_message_node(HtmlNode node){
+            if(node.NodeType == HtmlNodeType.Text){
+                return HttpUtility.HtmlEncode(node.OuterHtml);
+            }
+            string s;
+            if(safetags.Contains(node.Name)){ // TODO: Better whitelist system.
+                s = $"<{node.Name}>";
+                foreach(HtmlNode n in node.ChildNodes){
+                    s += sanitize_message_node(n);
+                }
+                s += $"</{node.Name}>";
+                return s;
+            }
+            s = HttpUtility.HtmlEncode(node.OuterHtml.Substring(0,node.InnerStartIndex - node.StreamPosition));
+            foreach(HtmlNode n in node.ChildNodes){
+                s += sanitize_message_node(n);
+            }
+            return s + HttpUtility.HtmlEncode(node.OuterHtml.Substring(node.InnerStartIndex - node.StreamPosition + node.InnerLength));
         }
     }
 }
