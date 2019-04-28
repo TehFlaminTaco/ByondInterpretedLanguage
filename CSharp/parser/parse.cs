@@ -1004,6 +1004,9 @@ namespace ByondLang{
                         for(int i=0; i < (int)(VarNumber)arg_data["var_count"]; i++){
                             fakeScope.string_vars[(string)(Variable.VarString)arg_data["var_names"].number_vars[i]] = arg_data["defaults"].number_vars[i];
                         }
+                        if(arg_data["splat_to"] != Var.nil){
+                            fakeScope.string_vars[(string)(Variable.VarString)arg_data["splat_to"]] = new VarList();
+                        }
                         foreach(KeyValuePair<Var, Var> kv in arguments){
                             if(kv.Key is VarNumber){
                                 VarNumber k = (VarNumber)kv.Key;
