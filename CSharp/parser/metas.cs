@@ -99,27 +99,27 @@ namespace ByondLang{
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = left.data % right.data;
             });
-            number["bitor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = ((int)left)|((int)right);
             });
-            number["bitand[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitand[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = ((int)left)&((int)right);
             });
-            number["bitxor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitxor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = ((int)left)^((int)right);
             });
-            number["bitshiftl[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitshiftl[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = ((int)left)<<((int)right);
             });
-            number["bitshiftr[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitshiftr[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
                 returnTarget[returnID] = ((int)left)>>((int)right);

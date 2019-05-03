@@ -1021,7 +1021,10 @@ namespace ByondLang{
                                 }
                                 fakeScope.number_vars[k.data] = kv.Value;
                             }else if(kv.Key is Variable.VarString){
-                                fakeScope.string_vars[(string)(Variable.VarString)kv.Key] = kv.Value;
+                                if(arg_data["splat_to"] == Var.nil || arg_data["var_names"].number_vars.ContainsValue((string)(Variable.VarString)kv.Key))
+                                    fakeScope.string_vars[(string)(Variable.VarString)kv.Key] = kv.Value;
+                                else
+                                    fakeScope.string_vars[(string)(Variable.VarString)arg_data["splat_to"]].string_vars[(string)(Variable.VarString)kv.Key] = kv.Value;
                             }else{
                                 fakeScope.other_vars[kv.Key] = kv.Value;
                             }

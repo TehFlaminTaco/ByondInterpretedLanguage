@@ -346,6 +346,7 @@ namespace ByondLang{
                         State s_state = new State();
                         loopfnc = new DoLater(delegate{
                             if(i < M.Count){
+                                scope.callstack.Push(loopfnc);
                                 Match m = M[i];
                                 if(i > 0){
                                     if(s_state.returns[0] is VarString){
@@ -364,7 +365,6 @@ namespace ByondLang{
                                     replace_func.Call(scope, s_state.returns, 0, outList);
                                 }
                                 i++;
-                                scope.callstack.Push(loopfnc);
                             }else{
                                 if(i > 0){
                                     if(s_state.returns[0] is VarString){
