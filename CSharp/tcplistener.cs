@@ -63,6 +63,9 @@ namespace ByondLang{
                 string response = @"HTTP/1.0 200 OK
 Server: NTSL2Daemon 1.0
 Content-Type: text/html
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: FooBar
 
 ";
 
