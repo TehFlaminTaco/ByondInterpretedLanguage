@@ -33,11 +33,12 @@ namespace ByondLang{
     class Listener{
         TcpListener server;
         public static Dictionary<int, Program> programs = new Dictionary<int, Program>();
+        Random idRNG = new Random();
 
         public int NextFreeProgram(){
-            int i=0;
+            int i=idRNG.Next();
             while(programs.ContainsKey(i))
-                i++;
+                i=idRNG.Next();
             return i;
         }
 
