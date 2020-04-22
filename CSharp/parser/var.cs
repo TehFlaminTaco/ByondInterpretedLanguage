@@ -443,6 +443,7 @@ namespace ByondLang.Variable{
     }
 
     class VarList : Var{
+        public Dictionary<string, Var> privateVariables = new Dictionary<string, Var>(); // Used internal to store things users shouldn't touch in lists.
 
         public VarList(){
             type = "list";
