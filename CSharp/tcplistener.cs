@@ -79,6 +79,7 @@ Content-Type: text/html
                             switch(req["action"]){
                                 case "clear":
                                     programs.Clear();
+                                    subspace_messages.Clear();
                                     response += "1";
                                     break;
                                 case "new_program":
