@@ -194,7 +194,9 @@ Content-Type: text/html
                                     }
                                     break;
                                 case "subspace_transmit":
-                                    if(subspace_messages.Count>0){
+                                    if(subspace_messages.Count == 0)
+                                        response += "0";
+                                    else while(subspace_messages.Count>0){
                                         Tuple<string, Variable.Var> message = subspace_messages.Dequeue();
                                         string channel = message.Item1;
                                         string varType = "none";
@@ -210,9 +212,8 @@ Content-Type: text/html
                                             varType = "ref";
                                             convertedData = ((contents as Variable.VarList).privateVariables["subspace_ref"] as Variable.VarString).data;
                                         }
-                                        response += "channel=" + HttpUtility.UrlEncode(message.Item1) + "&type=" + varType + "&data=" + HttpUtility.UrlEncode(convertedData);
-                                    }else
-                                        response += "0";
+                                        response += "channel=" + HttpUtility.UrlEncode(message.Item1) + "&type=" + varType + "&data=" + HttpUtility.UrlEncode(convertedData) + "\n";
+                                    }
                                     break;
                                 case "topic":
                                     id = programs.Count;
