@@ -46,7 +46,7 @@ namespace ByondLang{
         public Listener(string hostname, int port){
             server = new TcpListener(IPAddress.Parse(hostname), port);
             server.Start();
-            Console.WriteLine("Running successfully on port {0}", port);
+            Console.WriteLine("Running successfully on {0}:{1}", hostname, port);
 
             Regex getRequest = new Regex("GET\\s+(.*?)\\s+");
 
