@@ -43,8 +43,8 @@ namespace ByondLang{
             return i;
         }
 
-        public Listener(int port){
-            server = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+        public Listener(string hostname, int port){
+            server = new TcpListener(IPAddress.Parse(hostname), port);
             server.Start();
             Console.WriteLine("Running successfully on port {0}", port);
 

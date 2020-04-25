@@ -10,12 +10,16 @@ namespace ByondLang.CSharp
             TokenCompiler.GetTokens();
             TokenCompiler.CompileTokens();
 
+            string hostname = "0.0.0.0";
+
             int port = 1945;
 
-            if(args.Length > 0)
-                Int32.TryParse(args[0], out port);
+            if(args.Length > 1){
+                hostname = args[0];
+                Int32.TryParse(args[1], out port);
+            }
 
-            new Listener(port);
+            new Listener(hostname, port);
         }
     }
 }
