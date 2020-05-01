@@ -10,7 +10,7 @@ namespace ByondLang.CSharp
             TokenCompiler.GetTokens();
             TokenCompiler.CompileTokens();
 
-            string hostname = "0.0.0.0";
+            string hostname = "+";
 
             int port = 1945;
 
