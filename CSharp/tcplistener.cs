@@ -250,6 +250,8 @@ Content-Type: text/html
                 }catch(Exception ex){
                     Console.WriteLine("An exception occured while handling the message.");
                     Console.WriteLine(ex.Message);
+                    Console.WriteLine("Request Header Received:");
+                    Console.WriteLine(data);
                     client.Close();
                 }
                 Console.WriteLine("And finished!");
