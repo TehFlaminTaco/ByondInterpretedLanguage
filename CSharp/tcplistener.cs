@@ -61,10 +61,10 @@ namespace ByondLang{
                 Console.WriteLine("Connected!");
                 
                 data = "";
-                
+
                 NetworkStream stream = client.GetStream();
-                stream.ReadTimeout = 100;
-                stream.WriteTimeout = 100;
+                stream.ReadTimeout = 1000;
+                stream.WriteTimeout = 1000;
 
                 string response = @"HTTP/1.0 200 OK
 Server: NTSL2Daemon 1.0
