@@ -56,11 +56,15 @@ namespace ByondLang{
             while(true){
                 Console.WriteLine("Awaiting Connection...");
                 TcpClient client = server.AcceptTcpClient();
+
+                try{
                 Console.WriteLine("Connected!");
                 
                 data = "";
-
+                
                 NetworkStream stream = client.GetStream();
+                stream.ReadTimeout = 100;
+                stream.WriteTimeout = 100;
 
                 string response = @"HTTP/1.0 200 OK
 Server: NTSL2Daemon 1.0
@@ -243,6 +247,11 @@ Content-Type: text/html
                 }
 
                 client.Close();
+                }catch(Exception ex){
+                    Console.WriteLine("An exception occured while handling the message.");
+                    Console.WriteLine(ex.Message);
+                    client.Close();
+                }
                 Console.WriteLine("And finished!");
 
             }
