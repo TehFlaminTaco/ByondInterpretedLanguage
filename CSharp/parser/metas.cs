@@ -5,185 +5,185 @@ using System;
 namespace ByondLang{
     class Metas{
 
-        private static VarFunction GenericConcat = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+        private static VarFunction GenericConcat = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
 
                 State state = new State();
                 scope.callstack.Push(new DoLater(delegate{
                     if(!(state.returns[0] is VarString)){
-                        returnTarget[returnID] = Var.nil;return;
+                        callback(Var.nil);return;
                     }
                     if(!(state.returns[1] is VarString)){
-                        returnTarget[returnID] = Var.nil;return;
+                        callback(Var.nil);return;
                     }
-                    returnTarget[returnID] = ((VarString)state.returns[0]).data + ((VarString)state.returns[1]).data;
+                    callback(((VarString)state.returns[0]).data + ((VarString)state.returns[1]).data);
                 }));
                 if(arguments.number_vars[0] is VarString){
                     state.returns[0] = arguments.number_vars[0];
                 }else{
-                    arguments.number_vars[0].ToString(scope, state.returns, 0);
+                    arguments.number_vars[0].ToString(scope, callback);
                 }
                 if(arguments.number_vars[1] is VarString){
                     state.returns[1] = arguments.number_vars[1];
                 }else{
-                    arguments.number_vars[1].ToString(scope, state.returns, 1);
+                    arguments.number_vars[1].ToString(scope, callback);
                 }
             });
         
-        private static VarFunction ReturnOne = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-            returnTarget[returnID] = 1;
+        private static VarFunction ReturnOne = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+            callback(1);
         });
-        private static VarFunction ReturnZero = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-            returnTarget[returnID] = 0;
+        private static VarFunction ReturnZero = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+            callback(0);
         });
 
-        private static VarFunction And = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+        private static VarFunction And = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
             State state = new State();
             scope.callstack.Push(new DoLater(delegate{
                 if(0.0d != (double)(VarNumber)state.returns[0]){
-                    returnTarget[returnID] = arguments.number_vars[1];
+                    callback(arguments.number_vars[1]);
                 }else{
-                    returnTarget[returnID] = arguments.number_vars[0];
+                    callback(arguments.number_vars[0]);
                 }
             }));
-            arguments.number_vars[0].ToBool(scope, state.returns, 0);
+            arguments.number_vars[0].ToBool(scope, callback);
         });
 
-        private static VarFunction Or = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+        private static VarFunction Or = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
             State state = new State();
             scope.callstack.Push(new DoLater(delegate{
                 if(0.0d == (double)(VarNumber)state.returns[0]){
-                    returnTarget[returnID] = arguments.number_vars[1];
+                    callback(arguments.number_vars[1]);
                 }else{
-                    returnTarget[returnID] = arguments.number_vars[0];
+                    callback(arguments.number_vars[0]);
                 }
             }));
-            arguments.number_vars[0].ToBool(scope, state.returns, 0);
+            arguments.number_vars[0].ToBool(scope, callback);
         });
 
         public static VarList Number(VarList globals){
             VarList outp = new VarList();
             Dictionary<string, Var> number = outp.string_vars;
 
-            number["_add[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_add[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data + right.data;
+                callback(left.data + right.data);
             });
-            number["_sub[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_sub[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data - right.data;
+                callback(left.data - right.data);
             });
-            number["_mult[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_mult[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data * right.data;
+                callback(left.data * right.data);
             });
-            number["_intdiv[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_intdiv[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = (int)(left.data / right.data);
+                callback((int)(left.data / right.data));
             });
-            number["_div[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_div[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data / right.data;
+                callback(left.data / right.data);
             });
-            number["_pow[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_pow[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = Math.Pow(left.data,right.data);
+                callback(Math.Pow(left.data,right.data));
             });
-            number["_mod[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_mod[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data % right.data;
+                callback(left.data % right.data);
             });
-            number["_bitor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitor[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = ((int)left)|((int)right);
+                callback(((int)left)|((int)right));
             });
-            number["_bitand[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitand[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = ((int)left)&((int)right);
+                callback(((int)left)&((int)right));
             });
-            number["_bitxor[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitxor[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = ((int)left)^((int)right);
+                callback(((int)left)^((int)right));
             });
-            number["_bitshiftl[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitshiftl[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = ((int)left)<<((int)right);
+                callback(((int)left)<<((int)right));
             });
-            number["_bitshiftr[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitshiftr[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = ((int)left)>>((int)right);
+                callback(((int)left)>>((int)right));
             });
             number["_concat"] = GenericConcat;
-            number["_le[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_le[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data <= right.data ? 1 : 0;
+                callback(left.data <= right.data ? 1 : 0);
             });
-            number["_lt[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_lt[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data < right.data ? 1 : 0;
+                callback(left.data < right.data ? 1 : 0);
             });
-            number["_ge[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_ge[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data >= right.data ? 1 : 0;
+                callback(left.data >= right.data ? 1 : 0);
             });
-            number["_gt[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_gt[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data > right.data ? 1 : 0;
+                callback(left.data > right.data ? 1 : 0);
             });
-            number["_eq[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_eq[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data == right.data ? 1 : 0;
+                callback(left.data == right.data ? 1 : 0);
             });
-            number["_ne[number]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_ne[number]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
                 VarNumber right = (VarNumber)arguments.number_vars[1];
-                returnTarget[returnID] = left.data != right.data ? 1 : 0;
+                callback(left.data != right.data ? 1 : 0);
             });
             number["_eq"] = ReturnZero;
             number["_ne"] = ReturnOne;
 
-            number["_not"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_not"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
-                returnTarget[returnID] = left.data==0?1:0;
+                callback(left.data==0?1:0);
             });
-            number["_unm"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_unm"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
-                returnTarget[returnID] = -left.data;
+                callback(-left.data);
             });
-            number["_len"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_len"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
-                returnTarget[returnID] = left.data;
+                callback(left.data);
             });
-            number["_bitnot"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            number["_bitnot"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarNumber left = (VarNumber)arguments.number_vars[0];
-                returnTarget[returnID] = ~(int)left.data;
+                callback(~(int)left.data);
             });
 
             number["_and"] = And;
             number["_or"] = Or;
 
-            number["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = new VarString(""+(double)(VarNumber) arguments.number_vars[0]);
+            number["_tostring"]  = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(new VarString(""+(double)(VarNumber) arguments.number_vars[0]));
             });
 
-            number["_tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = arguments.number_vars[0];
+            number["_tonumber"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(arguments.number_vars[0]);
             });
             return outp;
         }
@@ -194,34 +194,34 @@ namespace ByondLang{
             str["_add"] = GenericConcat;
             str["_concat"] = GenericConcat;
             str["_index"] = globals.string_vars["string"];
-            str["_eq[string]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            str["_eq[string]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarString left = (VarString)arguments.number_vars[0];
                 VarString right = (VarString)arguments.number_vars[1];
-                returnTarget[returnID] = left.data == right.data ? 1 : 0;
+                callback(left.data == right.data ? 1 : 0);
             });
-            str["_ne[string]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            str["_ne[string]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarString left = (VarString)arguments.number_vars[0];
                 VarString right = (VarString)arguments.number_vars[1];
-                returnTarget[returnID] = left.data != right.data ? 1 : 0;
+                callback(left.data != right.data ? 1 : 0);
             });
             str["_eq"] = ReturnZero;
             str["_ne"] = ReturnOne;
 
-            str["_len"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            str["_len"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarString left = (VarString)arguments.number_vars[0];
-                returnTarget[returnID] = left.data.Length;
+                callback(left.data.Length);
             });
 
             str["_and"] = And;
             str["_or"] = Or;
 
-            str["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = arguments.number_vars[0];
+            str["_tostring"]  = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(arguments.number_vars[0]);
             });
-            str["_tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            str["_tonumber"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 double d = 0.0d;
                 Double.TryParse((string)(VarString)arguments.number_vars[0], out d);
-                returnTarget[returnID] = d;
+                callback(d);
             });
             return outp;
         }
@@ -230,15 +230,15 @@ namespace ByondLang{
             VarList outp = new VarList();
             Dictionary<string, Var> function = outp.string_vars;
             function["_concat"] = GenericConcat;
-            function["_eq[function]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            function["_eq[function]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarFunction left = (VarFunction)arguments.number_vars[0];
                 VarFunction right = (VarFunction)arguments.number_vars[1];
-                returnTarget[returnID] = left == right ? 1 : 0;
+                callback(left == right ? 1 : 0);
             });
-            function["_ne[function]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            function["_ne[function]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarFunction left = (VarFunction)arguments.number_vars[0];
                 VarFunction right = (VarFunction)arguments.number_vars[1];
-                returnTarget[returnID] = left != right ? 1 : 0;
+                callback(left != right ? 1 : 0);
             });
             function["_eq"] = ReturnZero;
             function["_ne"] = ReturnOne;
@@ -246,8 +246,8 @@ namespace ByondLang{
             function["_and"] = And;
             function["_or"] = Or;
 
-            function["_tostring"]  = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = ((VarFunction)arguments.number_vars[0]).FunctionText;
+            function["_tostring"]  = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(((VarFunction)arguments.number_vars[0]).FunctionText);
             });
             return outp;
         }
@@ -255,14 +255,14 @@ namespace ByondLang{
         public static VarList List(VarList globals){
             VarList outp = new VarList();
             Dictionary<string, Var> list = outp.string_vars;
-            list["_add[0]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_add[0]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList ls = (VarList)arguments.number_vars[0];
                 int max_key = 0;
                 while(ls.number_vars.ContainsKey(max_key))
                     max_key++;
                 ls.number_vars[max_key] = arguments.number_vars[1];
             });
-            list["_add[1]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_add[1]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList ls = (VarList)arguments.number_vars[1];
                 int max_key = 0;
                 while(ls.number_vars.ContainsKey(max_key))
@@ -270,28 +270,28 @@ namespace ByondLang{
                 ls.number_vars[max_key] = arguments.number_vars[0];
             });
             list["_concat"] = GenericConcat;
-            list["_eq[list]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_eq[list]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList left = (VarList)arguments.number_vars[0];
                 VarList right = (VarList)arguments.number_vars[1];
-                returnTarget[returnID] = left == right ? 1 : 0;
+                callback(left == right ? 1 : 0);
             });
-            list["_ne[list]"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_ne[list]"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList left = (VarList)arguments.number_vars[0];
                 VarList right = (VarList)arguments.number_vars[1];
-                returnTarget[returnID] = left != right ? 1 : 0;
+                callback(left != right ? 1 : 0);
             });
             list["_eq"] = ReturnZero;
             list["_ne"] = ReturnOne;
-            list["_index"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                globals.string_vars["table"].Get(scope, returnTarget, returnID, arguments.number_vars[1], true, false);
+            list["_index"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                globals.string_vars["table"].Get(scope, arguments.number_vars[1], true, false, callback);
             });
 
-            list["_len"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_len"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList left = (VarList)arguments.number_vars[0];
                 int i=0;
                 while(left.number_vars.ContainsKey(i))
                     i++;
-                returnTarget[returnID] = i;
+                callback(i);
             });
 
             list["_tonumber"] = list["_len"];
@@ -299,7 +299,7 @@ namespace ByondLang{
             list["_and"] = And;
             list["_or"] = Or;
 
-            list["_tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            list["_tostring"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarList ths = (VarList)arguments.number_vars[0];
                 string outs = "{";
                 string joiner = "";
@@ -351,7 +351,7 @@ namespace ByondLang{
                     }
                 }
                 outs += "}";
-                returnTarget[returnID] = outs;
+                callback(outs);
             });
             return outp;
         }
@@ -359,7 +359,7 @@ namespace ByondLang{
         public static VarList Event(VarList globals){
             VarList outp = new VarList();
             Dictionary<string, Var> evnt = outp.string_vars;
-            evnt["_call"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            evnt["_call"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 VarEvent ths = (VarEvent)arguments.number_vars[0];
                 int i = 0;
                 State state = new State();
@@ -388,7 +388,7 @@ namespace ByondLang{
                         }
                     }
                     
-                    ths.callbacks[i].Call(scope, state.returns, 0, newArgs);
+                    ths.callbacks[i].Call(scope, newArgs, callback);
                     i++;
                 });
                 scope.callstack.Push(toDo);
@@ -397,8 +397,8 @@ namespace ByondLang{
             evnt["_and"] = And;
             evnt["_or"] = Or;
 
-            evnt["_tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = "<Event>";
+            evnt["_tostring"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback("<Event>");
             });
             return outp;
         }

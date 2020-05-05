@@ -17,8 +17,20 @@ namespace ByondLang{
             scope.parser = parser;
             parser.scope = scope;
             scope.program = this;
-            scope.code = TokenCompiler.MatchToken(CodeToExecute);
-            scope.callstack.Push(new CallTarget(scope.code, scope.globals));
+            //scope.code = TokenCompiler.MatchToken(CodeToExecute);
+
+            StringClaimer claimer = new StringClaimer(CodeToExecute);
+            //while(!((latestEXP = TExpression.Claim(claimer)) is null)){ // Keep claiming expressions untill this is impossible.
+            //    scope.callstack.Push(new CallTarget(scope.code, scope.globals));
+            //}
+            System.Action<Var> nextStep = null;
+            nextStep = var => {
+                TExpression nextToken = TStatement.Claim(claimer);
+                if(nextToken != null){
+                    scope.callstack.Push(()=>nextToken.Parse(scope, nextStep));
+                }
+            };
+            nextStep(null);
         }
     }
 }

@@ -6,12 +6,12 @@ namespace ByondLang{
         public static VarList Generate(VarList globals){
             VarList table_VAR = new VarList();
             Dictionary<string, Var> table = table_VAR.string_vars;
-            table["set_meta"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            table["set_meta"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 arguments.number_vars[0].meta = arguments.number_vars[1];
-                returnTarget[returnID] = arguments.number_vars[0];
+                callback(arguments.number_vars[0]);
             });
-            table["get_meta"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = arguments.number_vars[0].meta;
+            table["get_meta"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(arguments.number_vars[0].meta);
             });
             return table_VAR;
         }

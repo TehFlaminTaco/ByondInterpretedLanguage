@@ -7,9 +7,6 @@ namespace ByondLang.CSharp
     {
         static void Main(string[] args)
         {
-            TokenCompiler.GetTokens();
-            TokenCompiler.CompileTokens();
-
             string hostname = "+";
 
             int port = 1945;

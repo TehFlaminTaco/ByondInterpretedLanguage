@@ -59,7 +59,7 @@ namespace ByondLang.Variable{
             return other_vars.ContainsKey(key);
         }
 
-        public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, bool force, bool curry){
+        public void Get(Scope scope, Var key, bool force, bool curry, System.Action<Var> callback){
             if(curry){
                 scope.callstack.Push(new DoLater(delegate{
                     Var val = returnTarget[returnID];
@@ -102,7 +102,7 @@ namespace ByondLang.Variable{
                 Var parent = GetMeta(scope, "_parent");
                 if(parent != nil){
                     scope.callstack.Push(new DoLater(delegate{
-                        parent.Get(scope, returnTarget, returnID, key);
+                        parent.Get(scope, key, callback);
                     }));
                     return;
                 }
@@ -110,9 +110,9 @@ namespace ByondLang.Variable{
                 if(index != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         if(index is VarList)
-                            index.Get(scope, returnTarget, returnID, key);
+                            index.Get(scope, key, callback);
                         else
-                            index.Call(scope, returnTarget, returnID, this, key);
+                            index.Call(scope, this, key, callback);
                     }));
                     return;
                 }
@@ -122,7 +122,7 @@ namespace ByondLang.Variable{
             return;
         }
 
-        public void Set(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, Var value, bool force){
+        public void Set(Scope scope, Var key, Var value, bool force, System.Action<Var> callback){
             if(ReadOnly){
                 returnTarget[returnID] = nil;
                 return;
@@ -135,16 +135,16 @@ namespace ByondLang.Variable{
             if(!force){
                 Var parent = GetMeta(scope, "_parent");
                 if(!HasVariable(key) && parent != nil){
-                    parent.Set(scope, returnTarget, returnID, key, value, false);
+                    parent.Set(scope, key, value, false, callback);
                     return;
                 }
                 Var newindex = GetMeta(scope, "_newindex");
                 if(!HasVariable(key) && newindex != nil){
                     scope.callstack.Push(new DoLater(delegate{
                         if(newindex is VarList)
-                            newindex.Set(scope, returnTarget, returnID, key, value);
+                            newindex.Set(scope, key, value, callback);
                         else
-                            newindex.Call(scope, returnTarget, returnID, this, key, value);
+                            newindex.Call(scope, this, key, value, callback);
                     }));
                     return;
                 }
@@ -176,19 +176,19 @@ namespace ByondLang.Variable{
                 }
             }
             
-            Get(scope, returnTarget, returnID, key);
+            Get(scope, key, callback);
             return;
         }
 
-        public void Get(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key){
-            Get(scope, returnTarget, returnID, key, false, false);
+        public void Get(Scope scope, Var key, System.Action<Var> callback){
+            Get(scope, key, false, false, callback);
         }
 
-        public void Set(Scope scope, Dictionary<int, Var> returnTarget, int returnID, Var key, Var value){
-            Set(scope, returnTarget, returnID, key, value, false);
+        public void Set(Scope scope, Var key, Var value, System.Action<Var> callback){
+            Set(scope, key, value, false, callback);
         }
 
-        public virtual void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+        public virtual void Call(Scope scope, VarList arguments, System.Action<Var> callback){
             returnTarget[returnID] = this;
             var _call = GetMeta(scope, "_call");
             if(_call!=nil){
@@ -200,24 +200,24 @@ namespace ByondLang.Variable{
                         arguments.number_vars[i] = arguments.number_vars[i-1];
                     }
                     arguments.number_vars[0] = this;
-                    _call.Call(scope, returnTarget, returnID, arguments);
+                    _call.Call(scope, arguments, callback);
                 }));
                 return;
             }
         }
 
-        public void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, params Var[] arguments){
-            Call(scope, returnTarget, returnID, new VarList(arguments));
+        public void Call(Scope scope, System.Action<Var> callback, params Var[] arguments){
+            Call(scope, new VarList(arguments, callback));
         }
 
-        public virtual void ToString(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public virtual void ToString(Scope scope, System.Action<Var> callback){
             Var _toString = GetMeta(scope, "_tostring");
             if(_toString!=nil){
                 if(_toString is VarString)
                     returnTarget[returnID] = _toString;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toString.Call(scope, returnTarget, returnID, this);
+                        _toString.Call(scope, this, callback);
                     }));
 
                 return;
@@ -225,14 +225,14 @@ namespace ByondLang.Variable{
             returnTarget[returnID] = new VarString("nil");
         }
 
-        public virtual void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public virtual void ToBool(Scope scope, System.Action<Var> callback){
             Var _toBool = GetMeta(scope, "_tobool");
             if(_toBool!=nil){
                 if(_toBool is VarNumber)
                     returnTarget[returnID] = _toBool;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toBool.Call(scope, returnTarget, returnID, this);
+                        _toBool.Call(scope, this, callback);
                     }));
 
                 return;
@@ -240,14 +240,14 @@ namespace ByondLang.Variable{
             returnTarget[returnID] = new VarNumber(0);
         }
 
-        public virtual void ToNumber(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public virtual void ToNumber(Scope scope, System.Action<Var> callback){
             Var _tonumber = GetMeta(scope, "_tonumber");
             if(_tonumber!=nil){
                 if(_tonumber is VarNumber)
                     returnTarget[returnID] = _tonumber;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _tonumber.Call(scope, returnTarget, returnID, this);
+                        _tonumber.Call(scope, this, callback);
                     }));
 
                 return;
@@ -344,7 +344,7 @@ namespace ByondLang.Variable{
             return var.data;
         }
 
-        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public override void ToBool(Scope scope, System.Action<Var> callback){
             returnTarget[returnID] = new VarNumber(this.data>0?1:0);
         }
     }
@@ -363,14 +363,14 @@ namespace ByondLang.Variable{
             return var.data;
         }
 
-        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public override void ToBool(Scope scope, System.Action<Var> callback){
             Var _toBool = GetMeta(scope, "_tobool");
             if(_toBool!=nil){
                 if(_toBool is VarNumber)
                     returnTarget[returnID] = _toBool;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toBool.Call(scope, returnTarget, returnID, this);
+                        _toBool.Call(scope, this, callback);
                     }));
 
                 return;
@@ -379,34 +379,33 @@ namespace ByondLang.Variable{
         }
     }
 
-    public delegate void VarFunc(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments);
+    public delegate void VarFuncDelegate(Scope scope, VarList arguments, Action<Var> callback);
     public class VarFunction : Var{
-        public VarFunc todo;
+        public VarFuncDelegate todo;
         public string FunctionText = "[internal function]";
         public VarFunction(){
             type = "function";
         }
 
-        public VarFunction(VarFunc todo) : this(){
+        public VarFunction(VarFuncDelegate todo) : this(){
             this.todo = todo;
         }
 
-        public override void Call(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-            returnTarget[returnID] = Var.nil;
+        public override void Call(Scope scope, VarList arguments, System.Action<Var> callback){
             if(todo!=null)
-                todo(scope, returnTarget, returnID, arguments);
+                todo(scope, arguments, callback);
             else
-                returnTarget[returnID] = Var.nil;
+                callback(Var.nil);
         }
 
-        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public override void ToBool(Scope scope, System.Action<Var> callback){
             Var _toBool = GetMeta(scope, "_tobool");
             if(_toBool!=nil){
                 if(_toBool is VarNumber)
                     returnTarget[returnID] = _toBool;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toBool.Call(scope, returnTarget, returnID, this);
+                        _toBool.Call(scope, this, callback);
                     }));
 
                 return;
@@ -421,15 +420,15 @@ namespace ByondLang.Variable{
         public VarEvent() : base(){
             type = "event";
             callbacks = new List<Var>();
-            string_vars["hook"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            string_vars["hook"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 returnTarget[returnID] = nil;
                 if(arguments.number_vars.Count > 0){
                     Hook(arguments.number_vars[0]);
                     returnTarget[returnID] = arguments.number_vars[0];
                 }
             });
-            string_vars["call"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                Call(scope, returnTarget, returnID, arguments);
+            string_vars["call"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                Call(scope, arguments, callback);
             });
         }
 
@@ -455,14 +454,14 @@ namespace ByondLang.Variable{
                 }
         }
 
-        public override void ToBool(Scope scope, Dictionary<int, Var> returnTarget, int returnID){
+        public override void ToBool(Scope scope, System.Action<Var> callback){
             Var _toBool = GetMeta(scope, "_tobool");
             if(_toBool!=nil){
                 if(_toBool is VarNumber)
                     returnTarget[returnID] = _toBool;
                 else
                     scope.callstack.Push(new DoLater(delegate{
-                        _toBool.Call(scope, returnTarget, returnID, this);
+                        _toBool.Call(scope, this, callback);
                     }));
 
                 return;

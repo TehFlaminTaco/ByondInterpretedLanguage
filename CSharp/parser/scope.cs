@@ -4,6 +4,16 @@ using ByondLang.Tokenizer;
 
 namespace ByondLang{
 
+    public class CallTarget{
+        //public Dictionary<int, Var> returnTarget = new Dictionary<int, Var>(); // We implciitely initilize this, to prevent errors if we don't actually use this. Laziness.
+        //public State state = null;
+        public VarList variables;
+
+        public CallTarget(VarList variables){
+            this.variables = variables;
+        }
+    }
+
     public struct SubTarget{
         public int dataID;
         public int itemID;
@@ -18,59 +28,25 @@ namespace ByondLang{
         public Dictionary<int, Var> returns = new Dictionary<int, Var>();
     }
 
-    public interface AsyncCallable{
-        void Run(Parser parser);
-    }
-
-    public class CallTarget : AsyncCallable{
-        public Token target;
-        public Dictionary<int, Var> returnTarget = new Dictionary<int, Var>(); // We implciitely initilize this, to prevent errors if we don't actually use this. Laziness.
-        public int returnTargetID = -1;
-
-        public State state = null;
-
-        public VarList variables;
-
-        public CallTarget(Token target, VarList variables){
-            this.target = target;
-            this.variables = variables;
-        }
-
-        public CallTarget(Dictionary<int, Var> returnTarget, int returnTargetID, Token target, VarList variables) : this(target, variables){
-            this.returnTarget = returnTarget;
-            this.returnTargetID = returnTargetID;
-        }
-
-        public void Run(Parser parser){
-            parser.parse(this.target, this, this.state);
-        }
-    }
-
-    public delegate void AsyncCall(Parser parser);
-
-    public class DoLater : AsyncCallable{
-        AsyncCall todo;
-        public DoLater(AsyncCall func){
-            todo = func;
-        }
-        public void Run(Parser parser){
-            todo(parser);
-        }
+    public enum ReturnType{
+        Return,
+        Break
     }
 
     public class Scope{
 
         public Parser parser;
 
-        public Stack<AsyncCallable> callstack = new Stack<AsyncCallable>();
+        public Stack<System.Action> callstack = new Stack<System.Action>();
 
         public Token code;
 
         public Program program;
 
-        public Dictionary<string, VarList> metas = new Dictionary<string, VarList>();
+        public Dictionary<ReturnType, VarList> metas = new Dictionary<ReturnType, VarList>();
 
         public VarList globals;
+        public Stack<KeyValuePair<ReturnType, Var>> returnsStack = new Stack<KeyValuePair<ReturnType, Var>>();
 
 
         public Scope(VarList globals){
@@ -86,9 +62,7 @@ namespace ByondLang{
 
         public void ExecuteNextEntry(){
             if(callstack.Count>0){
-                AsyncCallable toRun = callstack.Pop();
-                toRun.Run(parser);
-
+                callstack.Pop()();
             }
         }
 

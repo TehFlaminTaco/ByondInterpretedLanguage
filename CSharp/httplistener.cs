@@ -73,6 +73,8 @@ namespace ByondLang{
                 string response = @"";
                 Console.WriteLine(request.Url.AbsolutePath);
                 GetRequest req = new GetRequest(request.Url.AbsolutePath.Substring(1));
+
+                // TODO: Break this out into individual functions for readability.
                 if(req["action"]!=null){
                     switch(req["action"]){
                         case "clear":
@@ -133,7 +135,7 @@ namespace ByondLang{
                             if(req["signal"]!=null && req["sig_ref"]!=null && programs.ContainsKey(id)){
                                 Program prg = programs[id];
                                 //prg.scope.callstack.Clear();
-                                prg.scope.callstack.Push(new DoLater(delegate{
+                                prg.scope.callstack.Push(()=>{
                                     Variable.VarList args = new Variable.VarList();
                                     GetRequest signal = new GetRequest(req["signal"]);
                                     args.number_vars[0] = args.string_vars["content"]   = signal["content"];
@@ -144,8 +146,8 @@ namespace ByondLang{
                                     args.number_vars[5] = args.string_vars["ref"]       = req["sig_ref"];
                                     args.number_vars[6] = args.string_vars["language"]  = signal["language"];
                                     args.number_vars[7] = args.string_vars["verb"]      = signal["verb"];
-                                    prg.scope.globals.meta.string_vars["_parent"].string_vars["tcomm"].string_vars["onmessage"].Call(prg.scope, new Dictionary<int, Variable.Var>(), 0, args);
-                                }));
+                                    prg.scope.globals.meta.string_vars["_parent"].string_vars["tcomm"].string_vars["onmessage"].Call(prg.scope, args, v=>{});
+                                });
                                 response += "1";
                             }else{
                                 response += "0";
@@ -188,7 +190,7 @@ namespace ByondLang{
                                     }
                                     args.number_vars[0] = bc_dat;
                                     args.string_vars["message"] = bc_dat;
-                                    their_net["connections"].string_vars[hook].Call(kv.Value.scope, new Dictionary<int, Variable.Var>(), 0, args);
+                                    their_net["connections"].string_vars[hook].Call(kv.Value.scope, args, v=>{});
                                 }
                             }
                             break;
@@ -221,11 +223,11 @@ namespace ByondLang{
                             if(programs.ContainsKey(id)){
                                 Program prg = programs[id];
                                 prg.scope.callstack.Clear();
-                                prg.scope.callstack.Push(new DoLater(delegate{
+                                prg.scope.callstack.Push(()=>{
                                     Variable.VarList args = new Variable.VarList();
                                     args.string_vars["topic"] = args.number_vars[0] = req["topic"]==null?"":req["topic"];
-                                    prg.scope.globals.meta.string_vars["_parent"].string_vars["term"].string_vars["topic"].Call(prg.scope, new Dictionary<int, Variable.Var>(), 0, args);
-                                }));
+                                    prg.scope.globals.meta.string_vars["_parent"].string_vars["term"].string_vars["topic"].Call(prg.scope, args, v=>{});
+                                });
                                 response += "1";
                             }else{
                                 response += "0";

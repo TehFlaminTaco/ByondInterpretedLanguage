@@ -7,7 +7,7 @@ namespace ByondLang{
         public static VarList globals;
         public static VarList Generate(){
             globals = new VarList();
-            globals.string_vars["print"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            globals.string_vars["print"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 State state = new State();
                 DoLater looping_func = null;
                 looping_func = new DoLater(delegate{
@@ -32,11 +32,11 @@ namespace ByondLang{
                         }
                     }
                     scope.program.terminal.Write(Output + "\r\n");
-                    returnTarget[returnID] = Output;
+                    callback(Output);
                 });
                 scope.callstack.Push(looping_func);
             });
-            globals.string_vars["write"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            globals.string_vars["write"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 State state = new State();
                 DoLater looping_func = null;
                 looping_func = new DoLater(delegate{
@@ -61,15 +61,15 @@ namespace ByondLang{
                         }
                     }
                     scope.program.terminal.Write(Output);
-                    returnTarget[returnID] = Output;
+                    callback(Output);
                 });
                 scope.callstack.Push(looping_func);
             });
-            globals.string_vars["event"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = new VarEvent();
+            globals.string_vars["event"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(new VarEvent());
             });
-            globals.string_vars["type"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                returnTarget[returnID] = arguments.number_vars[0].type;
+            globals.string_vars["type"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                callback(arguments.number_vars[0].type);
             });
 
             globals.string_vars["table"] = LibTable.Generate(globals);
@@ -79,12 +79,12 @@ namespace ByondLang{
             globals.string_vars["tcomm"] = LibTComm.Generate(globals);
             globals.string_vars["net"] = LibNet.Generate(globals);
 
-            globals.string_vars["tostring"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                arguments.number_vars[0].ToString(scope, returnTarget, returnID);
+            globals.string_vars["tostring"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                arguments.number_vars[0].ToString(scope, callback);
             });
 
-            globals.string_vars["tonumber"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                arguments.number_vars[0].ToNumber(scope, returnTarget, returnID);
+            globals.string_vars["tonumber"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
+                arguments.number_vars[0].ToNumber(scope, callback);
             });
 
             return globals;

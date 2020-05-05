@@ -20,23 +20,7 @@ namespace ByondLang{
 
     public class Parser{
         public Scope scope;
-        public Stack<KeyValuePair<string, Var>> returnsStack = new Stack<KeyValuePair<string, Var>>();
-
-
         public static Regex escape_strings = new Regex(@"^(?:""|'|\[(=*)\[)(.*?)(?:""|'|]\1])$");
-
-        public Var ReturnValue(CallTarget target, Var val){
-            return target.returnTarget[target.returnTargetID] = val;
-        }
-
-        public Var ReturnValue(CallTarget target){
-            return ReturnValue(target, Var.nil);
-        }
-
-        public void parse(CallTarget target){
-            parse(target.target, target, target.state);
-        }
-
         public Var ntnet_sanitize(Var value){
             if(!(value is VarList || value is VarString || value is VarNumber))
                 return Var.nil;
@@ -56,7 +40,7 @@ namespace ByondLang{
             return value;
         }
 
-        public void Math(Dictionary<int, Var> returnTarget, int returnID, Var left, Var right, string op){
+        public void Math(Var left, Var right, string op, System.Action<Var> callback){
             string[] left_names = {"_"+op+"[0:"+right.type+"]", "_"+op+"["+right.type+"]", "_"+op+"[0]", "_"+op};
             string[] right_names = {"_"+op+"[1:"+left.type+"]", "_"+op+"["+left.type+"]", "_"+op+"[1]", "_"+op};
             Var metafunc = Var.nil;
@@ -70,13 +54,13 @@ namespace ByondLang{
                 i++;
             }
             if(!(metafunc is VarFunction)){
-                returnTarget[returnID] = metafunc;
+                callback(metafunc);
                 return;
             }
-            metafunc.Call(scope, returnTarget, returnID, left, right);
+            metafunc.Call(scope, callback, left, right);
         }
 
-        public void Math(Dictionary<int, Var> returnTarget, int returnID, Var left, string op){
+        public void Math(Var left, string op, System.Action<Var> callback){
             string[] left_names = {"_"+op+"[0]", "_"+op};
             Var metafunc = Var.nil;
             int i = 0;
@@ -85,14 +69,16 @@ namespace ByondLang{
                 i++;
             }
             if(!(metafunc is VarFunction)){
-                returnTarget[returnID] = metafunc;
+                callback(metafunc);
                 return;
             }
-            metafunc.Call(scope, returnTarget, returnID, left);
+            metafunc.Call(scope, callback, left);
         }
 
-        public void parse(Token token, CallTarget target, State state){
-            switch(token.name){
+        public void parse(Token token, State state, System.Action<Var> callback){
+            // To be replaced by token system.
+
+            /*switch(token.name){
                 case "program":
                     if(state == null){
                         state = target.state = new State();
@@ -120,7 +106,7 @@ namespace ByondLang{
                             parse(new CallTarget(state.returns, 0, token.data[0].items[0], target.variables));
                         }else{
                             Var varData = state.returns[0];
-                            varData.string_vars["target"].Get(scope, target.returnTarget, target.returnTargetID, varData.string_vars["index"], ((VarNumber)varData.string_vars["islocal"]).data==1, ((VarNumber)varData.string_vars["iscurry"]).data==1);
+                            varData.string_vars["target"].Get(scope, varData.string_vars["index"], ((VarNumber)varData.string_vars["islocal"]).data==1, ((VarNumber)varData.string_vars["iscurry"]).data==1, callback);
                         }
                     }else{
                         parse(new CallTarget(target.returnTarget, target.returnTargetID, token[0][0], target.variables));
@@ -271,7 +257,7 @@ namespace ByondLang{
                             if(parsed == null){
                                 target.returnTarget[target.returnTargetID] = Var.nil;
                             }else{
-                                target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                                target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                                     scope.callstack.Push(new CallTarget(returnTarget, returnID, parsed, target.variables));
                                 });
                             }
@@ -405,7 +391,7 @@ namespace ByondLang{
                 case "deop":
                     switch(token[1].name){
                         case "operator":
-                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                                 returnTarget[returnID] = Var.nil;
                                 if(arguments.number_vars.ContainsKey(0) && arguments.number_vars.ContainsKey(1)){
                                     Math(returnTarget, returnID, arguments.number_vars[0], arguments.number_vars[1], token[1][0][0].name);
@@ -413,7 +399,7 @@ namespace ByondLang{
                             });
                             break;
                         case "unoperator":
-                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                                 returnTarget[returnID] = Var.nil;
                                 if(arguments.number_vars.ContainsKey(0)){
                                     Math(returnTarget, returnID, arguments.number_vars[0], token[1][0][0].name);
@@ -421,7 +407,7 @@ namespace ByondLang{
                             });
                             break;
                         case "expression":
-                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                            target.returnTarget[target.returnTargetID] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                                 parse(new CallTarget(returnTarget, returnID, token[1][0], target.variables));
                             });
                             break;
@@ -458,7 +444,7 @@ namespace ByondLang{
                             }
                             VarEvent sub_event = new VarEvent();
                             target.returnTarget[target.returnTargetID] = sub_event;
-                            ((VarEvent)state.returns[3]).Hook(new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                            ((VarEvent)state.returns[3]).Hook(new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                                 State sub_state = new State();
                                 returnTarget[returnID] = Var.nil;
                                 if(token[2].name == "expression"){
@@ -492,7 +478,7 @@ namespace ByondLang{
                             return;
                         }
                         VarEvent evnt = (VarEvent) state.returns[0];
-                        evnt.Hook(new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                        evnt.Hook(new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                             VarList newScopeThing = new VarList();
                             newScopeThing.meta = new VarList();
                             newScopeThing.meta.string_vars["_index"] = new VarFunction(delegate(Scope Nscope, Dictionary<int, Var> NreturnTarget, int NreturnID, VarList Narguments){
@@ -514,141 +500,6 @@ namespace ByondLang{
                         target.returnTarget[target.returnTargetID] = evnt;
                         return;
                     }
-                case "withblock":
-                    if(state == null){
-                        state = target.state = new State();
-                    }
-                    if(!state.returns.ContainsKey(0)){
-                        scope.callstack.Push(target);
-                        parse(new CallTarget(state.returns, 0, token[1][0], target.variables));
-                        return;
-                    }else{
-                        VarList newScopeThing = new VarList();
-                        newScopeThing.meta = new VarList();
-                        newScopeThing.meta.string_vars["_index"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                            State mState = new State();
-                            scope.callstack.Push(new DoLater(delegate{
-                                if(mState.returns[0] == Var.nil)
-                                    returnTarget[returnID] = mState.returns[1];
-                                else
-                                    returnTarget[returnID] = mState.returns[0];
-                            }));
-                            state.returns[0].Get(scope, mState.returns, 0, arguments.number_vars[1], false, false);
-                            target.variables.Get(scope, mState.returns, 1, arguments.number_vars[1], false, false);
-                        });
-                        newScopeThing.meta.string_vars["_newindex"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
-                            state.returns[0].Set(scope, returnTarget, returnID, arguments.number_vars[1], arguments.number_vars[2], false);
-                        });
-                        parse(new CallTarget(target.returnTarget, target.returnTargetID, token[2][0], newScopeThing));
-                        return;
-                    }
-                case "switchblock":
-                    if(state == null){
-                        state = target.state = new State();
-                        state.returns[-1] = scope.listFromParent(target.variables);
-                    }
-                    if(!state.returns.ContainsKey(0)){
-                        scope.callstack.Push(target);
-                        parse(new CallTarget(state.returns, 0, token[1][0], (VarList)state.returns[-1]));
-                        return;
-                    }else{
-                        List<Token> cases = token[2][0][0].items;
-                        if(token[2][0][0].name != "case"){
-                            cases = token[2][0][1].items;
-                        }
-                        State substate = new State();
-                        int i = 0;
-                        bool passed_ever = false;
-                        DoLater toDo = null;
-                        toDo = new DoLater(delegate{
-                            if(returnsStack.Count > 0){
-                                KeyValuePair<string, Var> returns = returnsStack.Pop();
-                                target.returnTarget[target.returnTargetID] = returns.Value;
-                                if(returns.Key != "break")
-                                    returnsStack.Push(returns);
-                                return;
-                            }
-                            if(i >= cases.Count){
-                                return;
-                            }
-                            Token this_case = cases[i];
-                            if(!passed_ever){
-                                if(this_case[1].name == "default"){
-                                    passed_ever = true;
-                                }else{
-                                    if(!substate.returns.ContainsKey(0)){
-                                        scope.callstack.Push(toDo);
-                                        parse(new CallTarget(substate.returns, 0, this_case[2][0], (VarList)state.returns[-1]));
-                                        return;
-                                    }else if(!substate.returns.ContainsKey(1)){
-                                        scope.callstack.Push(toDo);
-                                        Math(substate.returns, 1, state.returns[0], substate.returns[0], "eq");
-                                        return;
-                                    }else{
-                                        if(substate.returns[1] is VarNumber && 0.0f != (double)(VarNumber)substate.returns[1]){
-                                            passed_ever = true;
-                                        }else{
-                                            substate.returns.Remove(0);
-                                            substate.returns.Remove(1);
-                                            i++;
-                                            scope.callstack.Push(toDo);
-                                            return;
-                                        }
-                                    }
-                                }
-                            }
-
-                            State prgmState = new State();
-                            int c = 0;
-                            List<Token> prgms = this_case[2].items;
-                            if(this_case[1].name != "default"){
-                                prgms = this_case[3].items;
-                            }
-                            DoLater prgmLoop = null;
-                            prgmLoop = new DoLater(delegate{
-                                if(returnsStack.Count > 0){
-                                    KeyValuePair<string, Var> returns = returnsStack.Pop();
-                                    target.returnTarget[target.returnTargetID] = returns.Value;
-                                    returnsStack.Push(returns);
-                                    return;
-                                }
-                                if(c >= prgms.Count){
-                                    return;
-                                }
-                                scope.callstack.Push(prgmLoop);
-                                parse(new CallTarget(target.returnTarget, target.returnTargetID, prgms[c][0][0], (VarList)state.returns[-1]));
-                                c++;
-                            });
-                            scope.callstack.Push(toDo);
-                            scope.callstack.Push(prgmLoop);
-                            i++;
-                        });
-                        scope.callstack.Push(toDo);
-                    }
-                    break;
-                case "exporblock":
-                    if(token[0].name == "expression"){
-                        parse(new CallTarget(target.returnTarget, target.returnTargetID, token[0][0], target.variables));
-                    }else{
-                        if(state == null){
-                            state = target.state = new State();
-                            state.returns[-1] = scope.listFromParent(target.variables);
-                        }
-                        if(returnsStack.Count > 0){
-                            target.returnTarget[target.returnTargetID] = returnsStack.Peek().Value;
-                            return;
-                        }
-                        List<Token> block = token[0][0][1].items;
-                        for(int i=0; i < block.Count; i++){
-                            if(!state.returns.ContainsKey(i)){
-                                scope.callstack.Push(target);
-                                scope.callstack.Push(new CallTarget(state.returns, i, block[i][0][0], (VarList)state.returns[-1]));
-                                return;
-                            }
-                        }
-                        target.returnTarget[target.returnTargetID] = block.Count>0?state.returns[block.Count-1]:Var.nil;
-                    }
-                    break;
                 case "ifblock":
                     target.returnTarget[target.returnTargetID] = Var.nil;
                     if(state == null){
@@ -996,7 +847,7 @@ namespace ByondLang{
                     }else{
                         toRun = token[2][0];
                     }
-                    VarFunction outp = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+                    VarFunction outp = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                         Dictionary<string, Var> arg_data = state.returns[0].string_vars;
                         VarList fakeScope = new VarList();
                         fakeScope.meta = new VarList();
@@ -1138,7 +989,7 @@ namespace ByondLang{
                     break;
                 default:
                     throw new UnknownTokenException(token.name);
-            }
+            }*/
         }
     }
 }

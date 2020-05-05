@@ -1,36 +1,27 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ByondLang.Tokenizer{
-    public class Token{
-        public bool isOnlyString = false;
-        public string name = "";
-        public List<TokenItem> data;
-        public string remainder = "";
-        public string text = "";
+    public abstract class Token{
 
-        public List<SubTarget> location;
+        public string raw = "";
+        public int offset = -1;
+        public StringClaimer ownerClaimer;
 
-        public TokenItem this[int key]{
-            get{
-                return data[key];
-            }
-            set{
-                data[key] = value;
-            }
+        private static Regex endWhitespace = new Regex(@"\s*$");
+        public void SetDebugInfo(StringClaimer claimer, int startPos){
+            offset = startPos;
+            raw = endWhitespace.Replace(claimer.getTextFrom(startPos), "");
+            ownerClaimer = claimer;
         }
-    }
 
-    public struct TokenItem{
-        public string name;
-        public List<Token> items;
-
-        public Token this[int key]{
-            get{
-                return items[key];
+        public void ShowError(System.Exception e){
+            if(offset == -1){ // If we don't have debug info, pass it up.
+                throw e;
             }
-            set{
-                items[key] = value;
-            }
+            //System.Console.Error.WriteLine($"Error at point {ownerClaimer.getLine(offset)}:{ownerClaimer.getChar(offset)} \"{raw}\"\n{e.Message}");
+            // This should theoretically climb UP the call stack with the error untill something (Or nothing) catches it.
+            throw new System.Exception($"at {ownerClaimer.getLine(offset)}:{ownerClaimer.getChar(offset)} \"{raw.Split('\n')[0] + (raw.IndexOf("\n")>-1?"...":"")}\"\n{e.Message}");
         }
     }
 }

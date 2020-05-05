@@ -7,7 +7,7 @@ namespace ByondLang{
             VarList tcomm_VAR = new VarList();
             Dictionary<string, Var> tcomm = tcomm_VAR.string_vars;
             tcomm["onmessage"] = new VarEvent();
-            tcomm["broadcast"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
+            tcomm["broadcast"] = new VarFunction(delegate(Scope scope, VarList arguments, System.Action<Var> callback){
                 Signal newSignal = new Signal("*beep*", "1459", "Telecomms Broadcaster", "Machine", "1", "says");
                 if(arguments.string_vars.ContainsKey("content") && arguments.string_vars["content"] is VarString){
                     newSignal.content = (string)(VarString)arguments.string_vars["content"];

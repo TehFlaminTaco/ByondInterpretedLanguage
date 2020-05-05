@@ -21,9 +21,10 @@ crementor:expression: '\+\+' | '\+\+' expression | expression: '--' | '--' expre
 call:expression: '\(' call_1* '\)' | expression: stringconstant | expression: splat_call | expression: deop
 call_1:splat_call ','? | var '=' expression ','? | constant '=' expression ','? | expression ','?
 splat_call:'\.\.\.' expression
-var:expression: index | local? '[a-zA-Z_]\w*'
+var:expression: index | local? identifier
+identifier:'\[a-zA-Z_\]\\w\*'
 local:'local' | 'var'
-index:'\[' expression '\]' | '\.' '[a-zA-Z_]\w*' | '::' '[a-zA-Z_]\w*'
+index:'\[' expression '\]' | '\.' identifier | '::' identifier
 function_builder:function var? arg_list exporblock | function var exporblock | arg_list '=>' exporblock | var '=>' exporblock
 function:'func' 'tion'?
 arg_list:'\(' arg_fill* splat_arg? '\)'
