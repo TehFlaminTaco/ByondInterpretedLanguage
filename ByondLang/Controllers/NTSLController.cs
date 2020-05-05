@@ -32,8 +32,14 @@ namespace ByondLang.Controllers
         [HttpGet("/new_program")]
         public int NewProgram([FromQuery] string code = "", [FromQuery(Name = "ref")] string computerRef = "")
         {
-            var id = _service.NewProgram(code, computerRef);
-            return id;
+            try
+            {
+                return _service.NewProgram(code, computerRef);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         [HttpGet("/execute")]
@@ -78,13 +84,13 @@ namespace ByondLang.Controllers
             }
         }
 
-        [HttpGet("/get_signals")]
+        [HttpGet("/get_signal")]
         [Produces("application/json")]
-        public Signal[] GetSignals([FromQuery] int id)
+        public Signal? GetSignal([FromQuery] int id)
         {
             try
             {
-                return _service.GetSignals(id);
+                return _service.GetSignal(id);
             }
             catch (Exception)
             {
@@ -93,11 +99,11 @@ namespace ByondLang.Controllers
         }
 
         [HttpGet("/subspace_receive")]
-        public int SubspaceReceive([FromQuery] int id, [FromQuery] string channel, [FromQuery] string type, [FromQuery] string data)
+        public int SubspaceReceive([FromQuery] string channel, [FromQuery] string type, [FromQuery] string data)
         {
             try
             {
-                _service.SubspaceReceive(id, channel, type, data);
+                _service.SubspaceReceive(channel, type, data);
                 return 1;
             }
             catch (Exception)
@@ -116,12 +122,12 @@ namespace ByondLang.Controllers
             }
             catch (Exception)
             {
-                return null;
+                return "0";
             }
         }
 
         [HttpGet("/topic")]
-        public int TopicCall([FromQuery] int id, [FromQuery] string topic)
+        public int TopicCall([FromQuery] int id, [FromQuery] string topic = "")
         {
             try
             {
