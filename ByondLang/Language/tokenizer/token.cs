@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ByondLang.Tokenizer{
+namespace ByondLang.Language.Tokenizer{
     public class Token{
         public bool isOnlyString = false;
         public string name = "";

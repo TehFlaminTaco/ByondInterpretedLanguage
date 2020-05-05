@@ -1,8 +1,8 @@
-using ByondLang.Variable;
-using ByondLang.Tokenizer;
+using ByondLang.Language.Variable;
+using ByondLang.Language.Tokenizer;
 using System.Collections.Generic;
 
-namespace ByondLang{
+namespace ByondLang.Language {
     public class Program{
         public Scope scope;
         public Parser parser;

@@ -1,8 +1,9 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     class GlobalGenerator{
         public static VarList globals;
         public static VarList Generate(){

@@ -1,7 +1,8 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Collections.Generic;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     public static class LibMath{
         public static VarList Generate(VarList globals){
             VarList math_VAR = new VarList();

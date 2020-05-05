@@ -1,11 +1,12 @@
-using ByondLang.Tokenizer;
-using ByondLang.States;
-using ByondLang.Variable;
+using ByondLang.Language.Tokenizer;
+using ByondLang.Language.States;
+using ByondLang.Language.Variable;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
 
     [System.Serializable]
     public class UnknownTokenException : System.Exception

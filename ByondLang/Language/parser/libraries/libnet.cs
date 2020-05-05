@@ -1,7 +1,8 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Collections.Generic;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     public static class LibNet{
         public static VarList Generate(VarList globals){
             VarList net_VAR = new VarList();
@@ -21,7 +22,7 @@ namespace ByondLang{
 
             net["message"] = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){
                 string hook = (string)(VarString)arguments.number_vars[0];
-                Listener.subspace_messages.Enqueue(new System.Tuple<string, Var>(hook, arguments.number_vars.ContainsKey(1)?arguments.number_vars[1]:Var.nil));
+                /*Listener.subspace_messages.Enqueue(new System.Tuple<string, Var>(hook, arguments.number_vars.ContainsKey(1)?arguments.number_vars[1]:Var.nil));
                 foreach(KeyValuePair<int, Program> kv in Listener.programs){
                     var their_net = kv.Value.scope.globals.meta.string_vars["_parent"].string_vars["net"].string_vars;
                     if(their_net["connections"].string_vars.ContainsKey(hook)){
@@ -32,7 +33,7 @@ namespace ByondLang{
                         }
                         their_net["connections"].string_vars[hook].Call(kv.Value.scope, new Dictionary<int, Variable.Var>(), 0, args);
                     }
-                }
+                }*/
                 returnTarget[returnID] = arguments.number_vars.ContainsKey(1) ? arguments.number_vars[1] : Var.nil;
             });
 

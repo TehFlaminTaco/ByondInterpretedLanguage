@@ -1,7 +1,8 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Collections.Generic;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     public static class LibTable{
         public static VarList Generate(VarList globals){
             VarList table_VAR = new VarList();

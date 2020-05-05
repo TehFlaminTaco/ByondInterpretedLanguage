@@ -1,7 +1,8 @@
 using System;
 using System.Web;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     public class Terminal{
         public int cursor_x = 0;
         public int cursor_y = 0;
