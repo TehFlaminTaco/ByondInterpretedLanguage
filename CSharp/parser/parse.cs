@@ -18,7 +18,7 @@ namespace ByondLang{
             System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 
-    class Parser{
+    public class Parser{
         public Scope scope;
         public Stack<KeyValuePair<string, Var>> returnsStack = new Stack<KeyValuePair<string, Var>>();
 

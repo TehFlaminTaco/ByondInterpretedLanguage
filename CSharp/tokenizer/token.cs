@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace ByondLang.Tokenizer{
-    class Token{
+    public class Token{
         public bool isOnlyString = false;
         public string name = "";
         public List<TokenItem> data;
@@ -20,7 +20,7 @@ namespace ByondLang.Tokenizer{
         }
     }
 
-    struct TokenItem{
+    public struct TokenItem{
         public string name;
         public List<Token> items;
 

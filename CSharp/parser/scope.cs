@@ -4,7 +4,7 @@ using ByondLang.Tokenizer;
 
 namespace ByondLang{
 
-    struct SubTarget{
+    public struct SubTarget{
         public int dataID;
         public int itemID;
 
@@ -14,15 +14,15 @@ namespace ByondLang{
         }
     }
 
-    class State{
+    public class State{
         public Dictionary<int, Var> returns = new Dictionary<int, Var>();
     }
 
-    interface AsyncCallable{
+    public interface AsyncCallable{
         void Run(Parser parser);
     }
 
-    class CallTarget : AsyncCallable{
+    public class CallTarget : AsyncCallable{
         public Token target;
         public Dictionary<int, Var> returnTarget = new Dictionary<int, Var>(); // We implciitely initilize this, to prevent errors if we don't actually use this. Laziness.
         public int returnTargetID = -1;
@@ -46,9 +46,9 @@ namespace ByondLang{
         }
     }
 
-    delegate void AsyncCall(Parser parser);
+    public delegate void AsyncCall(Parser parser);
 
-    class DoLater : AsyncCallable{
+    public class DoLater : AsyncCallable{
         AsyncCall todo;
         public DoLater(AsyncCall func){
             todo = func;
@@ -58,7 +58,7 @@ namespace ByondLang{
         }
     }
 
-    class Scope{
+    public class Scope{
 
         public Parser parser;
 

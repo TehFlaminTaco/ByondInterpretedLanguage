@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 namespace ByondLang{
     [DataContract]
-    struct Signal{
+    public struct Signal{
         [DataMember]
         public string content;
         [DataMember]

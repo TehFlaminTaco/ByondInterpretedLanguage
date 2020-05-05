@@ -4,7 +4,7 @@ using ByondLang;
 using System;
 
 namespace ByondLang.Variable{
-    class Var : IEnumerable{
+    public class Var : IEnumerable{
 
         bool ReadOnly = false;
 
@@ -263,7 +263,7 @@ namespace ByondLang.Variable{
         }
     }
 
-    class VarEnumerator : IEnumerator{
+    public class VarEnumerator : IEnumerator{
         int state = 0;
         Var target;
 
@@ -330,7 +330,7 @@ namespace ByondLang.Variable{
         }
     }
 
-    class VarNumber : Var{
+    public class VarNumber : Var{
         public double data = 0;
         public VarNumber(double data) : this(){
             this.data = data;
@@ -349,7 +349,7 @@ namespace ByondLang.Variable{
         }
     }
 
-    class VarString : Var{
+    public class VarString : Var{
         public string data = "";
         public VarString(string data) : this(){
             this.data = data;
@@ -379,8 +379,8 @@ namespace ByondLang.Variable{
         }
     }
 
-    delegate void VarFunc(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments);
-    class VarFunction : Var{
+    public delegate void VarFunc(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments);
+    public class VarFunction : Var{
         public VarFunc todo;
         public string FunctionText = "[internal function]";
         public VarFunction(){
@@ -415,7 +415,7 @@ namespace ByondLang.Variable{
         }
     }
 
-    class VarEvent : Var{
+    public class VarEvent : Var{
         public List<Var> callbacks;
 
         public VarEvent() : base(){
@@ -442,7 +442,7 @@ namespace ByondLang.Variable{
         }
     }
 
-    class VarList : Var{
+    public class VarList : Var{
         public Dictionary<string, Var> privateVariables = new Dictionary<string, Var>(); // Used internal to store things users shouldn't touch in lists.
 
         public VarList(){

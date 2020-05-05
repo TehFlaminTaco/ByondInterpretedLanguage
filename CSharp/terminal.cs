@@ -2,7 +2,7 @@ using System;
 using System.Web;
 
 namespace ByondLang{
-    class Terminal{
+    public class Terminal{
         public int cursor_x = 0;
         public int cursor_y = 0;
         public int width = 64;
@@ -146,7 +146,7 @@ namespace ByondLang{
         }
     }
 
-    class Color{
+    public class Color{
         public float r = 0;
         public float g = 0;
         public float b = 0;

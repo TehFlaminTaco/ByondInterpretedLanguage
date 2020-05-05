@@ -3,7 +3,7 @@ using ByondLang.Tokenizer;
 using System.Collections.Generic;
 
 namespace ByondLang{
-    class Program{
+    public class Program{
         public Scope scope;
         public Parser parser;
         public Terminal terminal;
