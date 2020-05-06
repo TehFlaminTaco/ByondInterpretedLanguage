@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using ByondLang.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -35,6 +38,16 @@ namespace ByondLang
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/{query}", async context => {
+                    var q = (string)context.Request.RouteValues["query"];
+                    IDictionary<string, string> dict = new Dictionary<string, string>();
+                    var parsed = HttpUtility.ParseQueryString(q);
+                    foreach (string k in parsed)
+                    {
+                        dict.Add(k, parsed[k]);
+                    }
+                    context.Response.Redirect(QueryHelpers.AddQueryString(dict["action"], dict));
+                });
             });
         }
     }
