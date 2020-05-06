@@ -20,6 +20,9 @@ namespace ByondLang
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseKestrel(options => {
+                        options.Limits.MaxRequestLineSize = (int)Math.Pow(2, 16);
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
