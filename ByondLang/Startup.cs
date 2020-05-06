@@ -38,16 +38,6 @@ namespace ByondLang
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapGet("/{query}", async context => {
-                    var q = (string)context.Request.RouteValues["query"];
-                    IDictionary<string, string> dict = new Dictionary<string, string>();
-                    var parsed = HttpUtility.ParseQueryString(q);
-                    foreach (string k in parsed)
-                    {
-                        dict.Add(k, parsed[k]);
-                    }
-                    context.Response.Redirect(QueryHelpers.AddQueryString(dict["action"], dict));
-                });
             });
         }
     }

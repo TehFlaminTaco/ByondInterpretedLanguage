@@ -75,7 +75,22 @@ namespace ByondLang.Controllers
         }
 
         [HttpGet("/remove")]
-        public int Remove([FromQuery] int id, [FromQuery] string signal_ref, [FromQuery] string encSignal)
+        public int Remove([FromQuery] int id)
+        {
+            try
+            {
+                _service.Remove(id);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "GetBuffer failed with exception.");
+                return 0;
+            }
+        }
+
+        [HttpGet("/message")]
+        public int Message([FromQuery] int id, [FromQuery] string signal_ref, [FromQuery] string encSignal)
         {
             var signal = HttpUtility.ParseQueryString(encSignal);
             try
