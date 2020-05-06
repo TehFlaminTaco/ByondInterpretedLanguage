@@ -8,17 +8,19 @@ using ByondLang.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace ByondLang.Controllers
 {
     [ApiController]
-    [Produces("text/plain")]
     public class NTSLController : ControllerBase
     {
         NTSLService _service;
-        public NTSLController(NTSLService service)
+        ILogger _log;
+        public NTSLController(NTSLService service, ILogger<NTSLController> logger)
         {
             _service = service;
+            _log = logger;
         }
 
 
@@ -36,8 +38,9 @@ namespace ByondLang.Controllers
             {
                 return _service.NewProgram(code, computerRef);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "New program failed with exception.");
                 return 0;
             }
         }
@@ -50,8 +53,9 @@ namespace ByondLang.Controllers
                 _service.Execute(id, cycles);
                 return 1;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "Execute failed with exception.");
                 return 0;
             }
         }
@@ -63,8 +67,9 @@ namespace ByondLang.Controllers
             {
                 return _service.GetTerminalBuffer(id);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "GetBuffer failed with exception.");
                 return "Unknown Error.";
             }
         }
@@ -78,22 +83,23 @@ namespace ByondLang.Controllers
                 _service.ProcessMessage(id, signal_ref, signal);
                 return 1;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "Remove failed with exception.");
                 return 0;
             }
         }
 
         [HttpGet("/get_signal")]
-        [Produces("application/json")]
         public Signal? GetSignal([FromQuery] int id)
         {
             try
             {
                 return _service.GetSignal(id);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "GetSignal failed with exception.");
                 return null;
             }
         }
@@ -106,8 +112,9 @@ namespace ByondLang.Controllers
                 _service.SubspaceReceive(channel, type, data);
                 return 1;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "SubspaceReceive failed with exception.");
                 return 0;
             }
         }
@@ -120,8 +127,9 @@ namespace ByondLang.Controllers
             {
                 return _service.GetSubspaceMessageToSend();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "SubspaceTransmit failed with exception.");
                 return "0";
             }
         }
@@ -134,8 +142,9 @@ namespace ByondLang.Controllers
                 _service.HandleTopic(id, topic);
                 return 1;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _log.LogError(e, "TopicCall failed with exception.");
                 return 0;
             }
         }
