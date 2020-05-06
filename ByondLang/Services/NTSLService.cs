@@ -1,4 +1,5 @@
 ﻿using ByondLang.Language;
+using ByondLang.Language.Tokenizer;
 using ByondLang.Language.Variable;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ByondLang.Services
 
         public NTSLService()
         {
+            TokenCompiler.EnsureInitialized();
         }
 
         internal void Reset()

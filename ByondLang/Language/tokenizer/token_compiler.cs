@@ -98,6 +98,15 @@ namespace ByondLang.Language.Tokenizer{
 
         private static Regex token_line_string = new Regex("(.*?):(.*)");
 
+
+        public static void EnsureInitialized()
+        {
+            if (RawTokens.Count > 0)
+                return;
+            GetTokens();
+            CompileTokens();
+        }
+
         public static void GetTokens(){
             var assembly = Assembly.GetExecutingAssembly();
             Stream stream = assembly.GetManifestResourceStream("ByondLang.Language.resource.tokens.txt");
