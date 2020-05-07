@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Collections;
-using ByondLang;
 using System;
 
-namespace ByondLang.Variable{
+namespace ByondLang.Language.Variable
+{
     public class Var : IEnumerable{
 
         bool ReadOnly = false;

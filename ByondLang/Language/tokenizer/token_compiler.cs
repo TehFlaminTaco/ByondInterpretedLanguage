@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System;
 
-namespace ByondLang.Tokenizer{
+namespace ByondLang.Language.Tokenizer{
     public class InvalidTokenException : System.Exception
     {
         public InvalidTokenException() { }
@@ -98,9 +98,18 @@ namespace ByondLang.Tokenizer{
 
         private static Regex token_line_string = new Regex("(.*?):(.*)");
 
+
+        public static void EnsureInitialized()
+        {
+            if (RawTokens.Count > 0)
+                return;
+            GetTokens();
+            CompileTokens();
+        }
+
         public static void GetTokens(){
             var assembly = Assembly.GetExecutingAssembly();
-            Stream stream = assembly.GetManifestResourceStream("CSharp.resource.tokens.txt");
+            Stream stream = assembly.GetManifestResourceStream("ByondLang.Language.resource.tokens.txt");
             StreamReader reader = new StreamReader(stream);
             string line;
             while((line = reader.ReadLine())!= null){

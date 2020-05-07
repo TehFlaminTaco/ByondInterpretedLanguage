@@ -1,8 +1,9 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
     public static class LibString{
         public static VarList Generate(VarList globals){
             VarList string_VAR = new VarList();

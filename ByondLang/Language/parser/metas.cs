@@ -1,8 +1,9 @@
-using ByondLang.Variable;
+using ByondLang.Language.Variable;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
-namespace ByondLang{
+namespace ByondLang.Language
+{
     class Metas{
 
         private static VarFunction GenericConcat = new VarFunction(delegate(Scope scope, Dictionary<int, Var> returnTarget, int returnID, VarList arguments){

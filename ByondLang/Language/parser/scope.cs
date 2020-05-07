@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using ByondLang.Variable;
-using ByondLang.Tokenizer;
+using ByondLang.Language.Variable;
+using ByondLang.Language.Tokenizer;
 
-namespace ByondLang{
+namespace ByondLang.Language
+{
 
     public struct SubTarget{
         public int dataID;
